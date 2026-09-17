@@ -499,9 +499,27 @@ function MainWidget.start(pluginHandle: Plugin)
 		end
 		makeLabel(card, "Updated", updatedText, UDim2.new(0, 146, 0, 96), UDim2.new(1, -158, 0, 16), 10, Color3.fromRGB(112, 117, 124), false)
 
-		local insertButton = makeButton(card, "Insert", "Insert", UDim2.new(0, 136, 0, 124), UDim2.fromOffset(64, 28), Color3.fromRGB(50, 87, 124), Color3.fromRGB(230, 238, 247))
-		local updateButton = makeButton(card, "Update", "Update", UDim2.new(0, 208, 0, 124), UDim2.fromOffset(64, 28), Color3.fromRGB(55, 73, 66), Color3.fromRGB(220, 235, 226))
-		local deleteButton = makeButton(card, "Delete", "Delete", UDim2.new(1, -70, 0, 124), UDim2.fromOffset(58, 28), Color3.fromRGB(63, 47, 47), Color3.fromRGB(224, 177, 172))
+		local actionRow = Instance.new("Frame")
+		actionRow.Name = "Actions"
+		actionRow.Position = UDim2.new(0, 12, 0, 124)
+		actionRow.Size = UDim2.new(1, -24, 0, 28)
+		actionRow.BackgroundTransparency = 1
+		actionRow.Parent = card
+
+		local actionLayout = Instance.new("UIListLayout")
+		actionLayout.FillDirection = Enum.FillDirection.Horizontal
+		actionLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
+		actionLayout.Padding = UDim.new(0, 8)
+		actionLayout.SortOrder = Enum.SortOrder.LayoutOrder
+		actionLayout.Parent = actionRow
+
+		local actionSize = UDim2.new(1 / 3, -6, 1, 0)
+		local insertButton = makeButton(actionRow, "Insert", "Insert", UDim2.new(), actionSize, Color3.fromRGB(50, 87, 124), Color3.fromRGB(230, 238, 247))
+		insertButton.LayoutOrder = 1
+		local updateButton = makeButton(actionRow, "Update", "Update", UDim2.new(), actionSize, Color3.fromRGB(55, 73, 66), Color3.fromRGB(220, 235, 226))
+		updateButton.LayoutOrder = 2
+		local deleteButton = makeButton(actionRow, "Delete", "Delete", UDim2.new(), actionSize, Color3.fromRGB(63, 47, 47), Color3.fromRGB(224, 177, 172))
+		deleteButton.LayoutOrder = 3
 
 		renameBox.FocusLost:Connect(function()
 			if renameBox.Text == component.name then
