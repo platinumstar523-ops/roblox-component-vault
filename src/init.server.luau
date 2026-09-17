@@ -2,6 +2,8 @@ assert(plugin, "Component Vault must run as a Roblox Studio plugin")
 
 local Selection = game:GetService("Selection")
 
+local Serializer = require(script.components.Serializer)
+
 local TOOLBAR_NAME = "Component Vault"
 local WIDGET_ID = "ComponentVault.MainWidget"
 
@@ -19,9 +21,9 @@ local widgetInfo = DockWidgetPluginGuiInfo.new(
 	false,
 	false,
 	360,
-	480,
+	500,
 	280,
-	260
+	300
 )
 
 local widget = plugin:CreateDockWidgetPluginGuiAsync(WIDGET_ID, widgetInfo)
@@ -118,31 +120,46 @@ selectionClass.TextTruncate = Enum.TextTruncate.AtEnd
 selectionClass.TextXAlignment = Enum.TextXAlignment.Left
 selectionClass.Parent = selectionCard
 
-local emptyTitle = Instance.new("TextLabel")
-emptyTitle.Name = "EmptyTitle"
-emptyTitle.BackgroundTransparency = 1
-emptyTitle.Position = UDim2.new(0, 18, 0.5, -12)
-emptyTitle.Size = UDim2.new(1, -36, 0, 28)
-emptyTitle.Font = Enum.Font.SourceSansSemibold
-emptyTitle.Text = "No components saved yet"
-emptyTitle.TextColor3 = Color3.fromRGB(230, 232, 235)
-emptyTitle.TextSize = 19
-emptyTitle.Parent = root
+local statusCaption = Instance.new("TextLabel")
+statusCaption.Name = "StatusCaption"
+statusCaption.BackgroundTransparency = 1
+statusCaption.Position = UDim2.new(0, 18, 0, 230)
+statusCaption.Size = UDim2.new(1, -36, 0, 18)
+statusCaption.Font = Enum.Font.SourceSansSemibold
+statusCaption.Text = "SERIALIZER"
+statusCaption.TextColor3 = Color3.fromRGB(135, 140, 147)
+statusCaption.TextSize = 12
+statusCaption.TextXAlignment = Enum.TextXAlignment.Left
+statusCaption.Parent = root
 
-local emptyBody = Instance.new("TextLabel")
-emptyBody.Name = "EmptyBody"
-emptyBody.BackgroundTransparency = 1
-emptyBody.Position = UDim2.new(0, 32, 0.5, 22)
-emptyBody.Size = UDim2.new(1, -64, 0, 48)
-emptyBody.Font = Enum.Font.SourceSans
-emptyBody.Text = "Selection detection is working. Component serialization is the next milestone."
-emptyBody.TextColor3 = Color3.fromRGB(155, 160, 167)
-emptyBody.TextSize = 15
-emptyBody.TextWrapped = true
-emptyBody.Parent = root
+local statusTitle = Instance.new("TextLabel")
+statusTitle.Name = "StatusTitle"
+statusTitle.BackgroundTransparency = 1
+statusTitle.Position = UDim2.new(0, 18, 0, 258)
+statusTitle.Size = UDim2.new(1, -36, 0, 28)
+statusTitle.Font = Enum.Font.SourceSansSemibold
+statusTitle.Text = "Ready for a UI component"
+statusTitle.TextColor3 = Color3.fromRGB(230, 232, 235)
+statusTitle.TextSize = 19
+statusTitle.TextXAlignment = Enum.TextXAlignment.Left
+statusTitle.Parent = root
+
+local statusBody = Instance.new("TextLabel")
+statusBody.Name = "StatusBody"
+statusBody.BackgroundTransparency = 1
+statusBody.Position = UDim2.new(0, 18, 0, 292)
+statusBody.Size = UDim2.new(1, -36, 0, 72)
+statusBody.Font = Enum.Font.SourceSans
+statusBody.Text = "Select a supported GuiObject, then serialize it into Component Vault's versioned data format."
+statusBody.TextColor3 = Color3.fromRGB(155, 160, 167)
+statusBody.TextSize = 15
+statusBody.TextWrapped = true
+statusBody.TextXAlignment = Enum.TextXAlignment.Left
+statusBody.TextYAlignment = Enum.TextYAlignment.Top
+statusBody.Parent = root
 
 local saveButton = Instance.new("TextButton")
-saveButton.Name = "SaveComponent"
+saveButton.Name = "SerializeComponent"
 saveButton.AnchorPoint = Vector2.new(0, 1)
 saveButton.Position = UDim2.new(0, 18, 1, -18)
 saveButton.Size = UDim2.new(1, -36, 0, 38)
@@ -151,7 +168,7 @@ saveButton.BorderSizePixel = 0
 saveButton.AutoButtonColor = false
 saveButton.Active = false
 saveButton.Font = Enum.Font.SourceSansSemibold
-saveButton.Text = "Select a GuiObject to continue"
+saveButton.Text = "Select a supported GuiObject"
 saveButton.TextColor3 = Color3.fromRGB(170, 176, 184)
 saveButton.TextSize = 16
 saveButton.Parent = root
@@ -161,6 +178,7 @@ corner.CornerRadius = UDim.new(0, 6)
 corner.Parent = saveButton
 
 local selectedGuiObject: GuiObject? = nil
+local lastSerializedComponent = nil
 
 local function findSelectedGuiObject(): GuiObject?
 	for _, instance in Selection:Get() do
@@ -172,23 +190,96 @@ local function findSelectedGuiObject(): GuiObject?
 	return nil
 end
 
+local function setSerializeButtonEnabled(enabled: boolean)
+	saveButton.Active = enabled
+	saveButton.AutoButtonColor = enabled
+
+	if enabled then
+		saveButton.BackgroundColor3 = Color3.fromRGB(54, 95, 140)
+		saveButton.TextColor3 = Color3.fromRGB(235, 241, 248)
+	else
+		saveButton.BackgroundColor3 = Color3.fromRGB(48, 55, 63)
+		saveButton.TextColor3 = Color3.fromRGB(170, 176, 184)
+	end
+end
+
 local function refreshSelection()
 	selectedGuiObject = findSelectedGuiObject()
 
-	if selectedGuiObject then
+	if selectedGuiObject and Serializer.isSupported(selectedGuiObject) then
 		selectionName.Text = selectedGuiObject.Name
 		selectionClass.Text = selectedGuiObject.ClassName
 		selectionCard.BackgroundColor3 = Color3.fromRGB(42, 51, 61)
-		saveButton.BackgroundColor3 = Color3.fromRGB(54, 95, 140)
-		saveButton.TextColor3 = Color3.fromRGB(210, 220, 232)
-		saveButton.Text = string.format("Ready to save %s — serializer next", selectedGuiObject.Name)
+		saveButton.Text = "Serialize Component"
+		setSerializeButtonEnabled(true)
+		statusTitle.Text = "Ready to serialize"
+		statusBody.Text = string.format(
+			"%s is supported. Serialization will include supported descendants, properties, and attributes.",
+			selectedGuiObject.Name
+		)
+	elseif selectedGuiObject then
+		selectionName.Text = selectedGuiObject.Name
+		selectionClass.Text = string.format("%s — unsupported as a root component", selectedGuiObject.ClassName)
+		selectionCard.BackgroundColor3 = Color3.fromRGB(58, 45, 43)
+		saveButton.Text = "Unsupported root class"
+		setSerializeButtonEnabled(false)
+		statusTitle.Text = "This UI class is not supported yet"
+		statusBody.Text = "Try a Frame, text/image object, or ScrollingFrame. More root classes will be added as the serializer matures."
 	else
 		selectionName.Text = "No supported UI selected"
 		selectionClass.Text = "Select a GuiObject in Explorer or the viewport."
 		selectionCard.BackgroundColor3 = Color3.fromRGB(39, 42, 46)
-		saveButton.BackgroundColor3 = Color3.fromRGB(48, 55, 63)
-		saveButton.TextColor3 = Color3.fromRGB(170, 176, 184)
-		saveButton.Text = "Select a GuiObject to continue"
+		saveButton.Text = "Select a supported GuiObject"
+		setSerializeButtonEnabled(false)
+		statusTitle.Text = "Ready for a UI component"
+		statusBody.Text = "Select a supported GuiObject, then serialize it into Component Vault's versioned data format."
+	end
+end
+
+local function serializeSelection()
+	local target = selectedGuiObject
+	if not target or not Serializer.isSupported(target) then
+		return
+	end
+
+	local ok, result = pcall(function()
+		return Serializer.serialize(target)
+	end)
+
+	if not ok then
+		lastSerializedComponent = nil
+		statusTitle.Text = "Serialization failed"
+		statusBody.Text = tostring(result)
+		warn("[Component Vault] Serialization failed:", result)
+		return
+	end
+
+	lastSerializedComponent = result
+	local warningCount = #result.warnings
+	statusTitle.Text = "Serialization successful"
+	statusBody.Text = string.format(
+		"Captured %d instance%s and %d propert%s using schema v%d. %d warning%s.",
+		result.stats.instanceCount,
+		result.stats.instanceCount == 1 and "" or "s",
+		result.stats.propertyCount,
+		result.stats.propertyCount == 1 and "y" or "ies",
+		result.schemaVersion,
+		warningCount,
+		warningCount == 1 and "" or "s"
+	)
+	saveButton.Text = "Serialize Again"
+
+	print(string.format(
+		"[Component Vault] Serialized %s: %d instances, %d properties, %d warnings (schema v%d)",
+		result.componentName,
+		result.stats.instanceCount,
+		result.stats.propertyCount,
+		warningCount,
+		result.schemaVersion
+	))
+
+	for _, warningMessage in result.warnings do
+		warn("[Component Vault]", warningMessage)
 	end
 end
 
@@ -200,6 +291,7 @@ toggleButton.Click:Connect(function()
 	widget.Enabled = not widget.Enabled
 end)
 
+saveButton.Activated:Connect(serializeSelection)
 widget:GetPropertyChangedSignal("Enabled"):Connect(syncButtonState)
 Selection.SelectionChanged:Connect(refreshSelection)
 
