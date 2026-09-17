@@ -21,12 +21,17 @@ The first milestone is intentionally small:
 
 More advanced ideas such as themes, design tokens, component versioning, team libraries, and shared libraries are planned for later releases.
 
+## Current Progress
+
+The repository now includes a Rojo plugin project and the first Studio shell: a **Component Vault** toolbar button that toggles a dockable window. Component saving is the next implementation milestone.
+
 ## Repository Structure
 
 ```text
 roblox-component-vault/
+├── default.project.json
 ├── src/
-│   ├── Main.plugin.lua
+│   ├── init.server.luau
 │   ├── components/
 │   ├── storage/
 │   ├── ui/
@@ -40,6 +45,10 @@ roblox-component-vault/
 ├── LICENSE
 └── README.md
 ```
+
+## Development
+
+Component Vault uses [Rojo](https://rojo.space/) for Roblox Studio plugin development. See [docs/getting-started.md](docs/getting-started.md) for the current setup and testing workflow.
 
 ## Contributing
 
