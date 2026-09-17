@@ -1,5 +1,6 @@
 assert(plugin, "Component Vault must run as a Roblox Studio plugin")
 
+local ChangeHistoryService = game:GetService("ChangeHistoryService")
 local Selection = game:GetService("Selection")
 local StarterGui = game:GetService("StarterGui")
 
@@ -13,12 +14,7 @@ local WIDGET_ID = "ComponentVault.MainWidget"
 local libraryStore = LibraryStore.new(plugin)
 
 local toolbar = plugin:CreateToolbar(TOOLBAR_NAME)
-local toggleButton = toolbar:CreateButton(
-	"ComponentVault.Toggle",
-	"Open Component Vault",
-	"",
-	"Component Vault"
-)
+local toggleButton = toolbar:CreateButton("ComponentVault.Toggle", "Open Component Vault", "", "Component Vault")
 toggleButton.ClickableWhenViewportHidden = true
 
 local widgetInfo = DockWidgetPluginGuiInfo.new(
@@ -26,9 +22,9 @@ local widgetInfo = DockWidgetPluginGuiInfo.new(
 	false,
 	false,
 	420,
-	650,
+	700,
 	320,
-	420
+	460
 )
 
 local widget = plugin:CreateDockWidgetPluginGuiAsync(WIDGET_ID, widgetInfo)
@@ -41,31 +37,48 @@ root.BackgroundColor3 = Color3.fromRGB(30, 32, 35)
 root.BorderSizePixel = 0
 root.Parent = widget
 
-local header = Instance.new("TextLabel")
-header.Name = "Header"
-header.BackgroundTransparency = 1
-header.Position = UDim2.new(0, 18, 0, 16)
-header.Size = UDim2.new(1, -36, 0, 30)
-header.Font = Enum.Font.SourceSansSemibold
-header.Text = "Component Vault"
-header.TextColor3 = Color3.fromRGB(245, 245, 245)
-header.TextSize = 24
-header.TextXAlignment = Enum.TextXAlignment.Left
-header.Parent = root
+local function makeLabel(name: string, text: string, position: UDim2, size: UDim2, textSize: number, color: Color3, bold: boolean?)
+	local label = Instance.new("TextLabel")
+	label.Name = name
+	label.BackgroundTransparency = 1
+	label.Position = position
+	label.Size = size
+	label.Font = bold and Enum.Font.SourceSansSemibold or Enum.Font.SourceSans
+	label.Text = text
+	label.TextColor3 = color
+	label.TextSize = textSize
+	label.TextWrapped = true
+	label.TextXAlignment = Enum.TextXAlignment.Left
+	label.TextYAlignment = Enum.TextYAlignment.Top
+	label.Parent = root
+	return label
+end
 
-local subtitle = Instance.new("TextLabel")
-subtitle.Name = "Subtitle"
-subtitle.BackgroundTransparency = 1
-subtitle.Position = UDim2.new(0, 18, 0, 50)
-subtitle.Size = UDim2.new(1, -36, 0, 44)
-subtitle.Font = Enum.Font.SourceSans
-subtitle.Text = "Save reusable Roblox UI components and access them from other projects."
-subtitle.TextColor3 = Color3.fromRGB(175, 179, 185)
-subtitle.TextSize = 15
-subtitle.TextWrapped = true
-subtitle.TextXAlignment = Enum.TextXAlignment.Left
-subtitle.TextYAlignment = Enum.TextYAlignment.Top
-subtitle.Parent = root
+local function addCorner(gui: GuiObject, radius: number?)
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0, radius or 6)
+	corner.Parent = gui
+end
+
+local header = makeLabel(
+	"Header",
+	"Component Vault",
+	UDim2.new(0, 18, 0, 16),
+	UDim2.new(1, -36, 0, 30),
+	24,
+	Color3.fromRGB(245, 245, 245),
+	true
+)
+
+local subtitle = makeLabel(
+	"Subtitle",
+	"Save reusable Roblox UI components and access them from other projects.",
+	UDim2.new(0, 18, 0, 50),
+	UDim2.new(1, -36, 0, 44),
+	15,
+	Color3.fromRGB(175, 179, 185),
+	false
+)
 
 local divider = Instance.new("Frame")
 divider.Name = "Divider"
@@ -75,17 +88,15 @@ divider.Position = UDim2.new(0, 18, 0, 104)
 divider.Size = UDim2.new(1, -36, 0, 1)
 divider.Parent = root
 
-local selectionCaption = Instance.new("TextLabel")
-selectionCaption.Name = "SelectionCaption"
-selectionCaption.BackgroundTransparency = 1
-selectionCaption.Position = UDim2.new(0, 18, 0, 120)
-selectionCaption.Size = UDim2.new(1, -36, 0, 18)
-selectionCaption.Font = Enum.Font.SourceSansSemibold
-selectionCaption.Text = "STUDIO SELECTION"
-selectionCaption.TextColor3 = Color3.fromRGB(135, 140, 147)
-selectionCaption.TextSize = 12
-selectionCaption.TextXAlignment = Enum.TextXAlignment.Left
-selectionCaption.Parent = root
+makeLabel(
+	"SelectionCaption",
+	"STUDIO SELECTION",
+	UDim2.new(0, 18, 0, 120),
+	UDim2.new(1, -36, 0, 18),
+	12,
+	Color3.fromRGB(135, 140, 147),
+	true
+)
 
 local selectionCard = Instance.new("Frame")
 selectionCard.Name = "SelectionCard"
@@ -94,48 +105,39 @@ selectionCard.Size = UDim2.new(1, -36, 0, 58)
 selectionCard.BackgroundColor3 = Color3.fromRGB(39, 42, 46)
 selectionCard.BorderSizePixel = 0
 selectionCard.Parent = root
+addCorner(selectionCard)
 
-local selectionCorner = Instance.new("UICorner")
-selectionCorner.CornerRadius = UDim.new(0, 6)
-selectionCorner.Parent = selectionCard
-
-local selectionName = Instance.new("TextLabel")
-selectionName.Name = "SelectionName"
-selectionName.BackgroundTransparency = 1
-selectionName.Position = UDim2.new(0, 12, 0, 7)
-selectionName.Size = UDim2.new(1, -24, 0, 22)
-selectionName.Font = Enum.Font.SourceSansSemibold
-selectionName.Text = "No supported UI selected"
-selectionName.TextColor3 = Color3.fromRGB(225, 228, 232)
-selectionName.TextSize = 16
+local selectionName = makeLabel(
+	"SelectionName",
+	"No supported UI selected",
+	UDim2.new(0, 30, 0, 151),
+	UDim2.new(1, -60, 0, 22),
+	16,
+	Color3.fromRGB(225, 228, 232),
+	true
+)
 selectionName.TextTruncate = Enum.TextTruncate.AtEnd
-selectionName.TextXAlignment = Enum.TextXAlignment.Left
-selectionName.Parent = selectionCard
 
-local selectionClass = Instance.new("TextLabel")
-selectionClass.Name = "SelectionClass"
-selectionClass.BackgroundTransparency = 1
-selectionClass.Position = UDim2.new(0, 12, 0, 31)
-selectionClass.Size = UDim2.new(1, -24, 0, 18)
-selectionClass.Font = Enum.Font.SourceSans
-selectionClass.Text = "Select a GuiObject in Explorer or the viewport."
-selectionClass.TextColor3 = Color3.fromRGB(150, 155, 162)
-selectionClass.TextSize = 13
+local selectionClass = makeLabel(
+	"SelectionClass",
+	"Select a GuiObject in Explorer or the viewport.",
+	UDim2.new(0, 30, 0, 175),
+	UDim2.new(1, -60, 0, 18),
+	13,
+	Color3.fromRGB(150, 155, 162),
+	false
+)
 selectionClass.TextTruncate = Enum.TextTruncate.AtEnd
-selectionClass.TextXAlignment = Enum.TextXAlignment.Left
-selectionClass.Parent = selectionCard
 
-local nameCaption = Instance.new("TextLabel")
-nameCaption.Name = "NameCaption"
-nameCaption.BackgroundTransparency = 1
-nameCaption.Position = UDim2.new(0, 18, 0, 218)
-nameCaption.Size = UDim2.new(1, -36, 0, 18)
-nameCaption.Font = Enum.Font.SourceSansSemibold
-nameCaption.Text = "COMPONENT NAME"
-nameCaption.TextColor3 = Color3.fromRGB(135, 140, 147)
-nameCaption.TextSize = 12
-nameCaption.TextXAlignment = Enum.TextXAlignment.Left
-nameCaption.Parent = root
+makeLabel(
+	"NameCaption",
+	"COMPONENT NAME",
+	UDim2.new(0, 18, 0, 218),
+	UDim2.new(1, -36, 0, 18),
+	12,
+	Color3.fromRGB(135, 140, 147),
+	true
+)
 
 local nameInput = Instance.new("TextBox")
 nameInput.Name = "ComponentName"
@@ -152,15 +154,12 @@ nameInput.PlaceholderColor3 = Color3.fromRGB(120, 125, 132)
 nameInput.TextSize = 15
 nameInput.TextXAlignment = Enum.TextXAlignment.Left
 nameInput.Parent = root
+addCorner(nameInput)
 
 local namePadding = Instance.new("UIPadding")
 namePadding.PaddingLeft = UDim.new(0, 10)
 namePadding.PaddingRight = UDim.new(0, 10)
 namePadding.Parent = nameInput
-
-local nameCorner = Instance.new("UICorner")
-nameCorner.CornerRadius = UDim.new(0, 6)
-nameCorner.Parent = nameInput
 
 local saveButton = Instance.new("TextButton")
 saveButton.Name = "SaveComponent"
@@ -175,41 +174,54 @@ saveButton.Text = "Select a supported GuiObject"
 saveButton.TextColor3 = Color3.fromRGB(170, 176, 184)
 saveButton.TextSize = 16
 saveButton.Parent = root
+addCorner(saveButton)
 
-local saveCorner = Instance.new("UICorner")
-saveCorner.CornerRadius = UDim.new(0, 6)
-saveCorner.Parent = saveButton
+local statusLabel = makeLabel(
+	"Status",
+	"Saved components are available across Studio places.",
+	UDim2.new(0, 18, 0, 334),
+	UDim2.new(1, -36, 0, 42),
+	13,
+	Color3.fromRGB(145, 150, 158),
+	false
+)
 
-local statusLabel = Instance.new("TextLabel")
-statusLabel.Name = "Status"
-statusLabel.BackgroundTransparency = 1
-statusLabel.Position = UDim2.new(0, 18, 0, 334)
-statusLabel.Size = UDim2.new(1, -36, 0, 42)
-statusLabel.Font = Enum.Font.SourceSans
-statusLabel.Text = "Saved components are stored locally by the plugin and are available across Studio places."
-statusLabel.TextColor3 = Color3.fromRGB(145, 150, 158)
-statusLabel.TextSize = 13
-statusLabel.TextWrapped = true
-statusLabel.TextXAlignment = Enum.TextXAlignment.Left
-statusLabel.TextYAlignment = Enum.TextYAlignment.Top
-statusLabel.Parent = root
+local libraryCaption = makeLabel(
+	"LibraryCaption",
+	"MY COMPONENTS",
+	UDim2.new(0, 18, 0, 388),
+	UDim2.new(1, -36, 0, 18),
+	12,
+	Color3.fromRGB(135, 140, 147),
+	true
+)
 
-local libraryCaption = Instance.new("TextLabel")
-libraryCaption.Name = "LibraryCaption"
-libraryCaption.BackgroundTransparency = 1
-libraryCaption.Position = UDim2.new(0, 18, 0, 388)
-libraryCaption.Size = UDim2.new(1, -36, 0, 18)
-libraryCaption.Font = Enum.Font.SourceSansSemibold
-libraryCaption.Text = "MY COMPONENTS"
-libraryCaption.TextColor3 = Color3.fromRGB(135, 140, 147)
-libraryCaption.TextSize = 12
-libraryCaption.TextXAlignment = Enum.TextXAlignment.Left
-libraryCaption.Parent = root
+local searchInput = Instance.new("TextBox")
+searchInput.Name = "Search"
+searchInput.Position = UDim2.new(0, 18, 0, 412)
+searchInput.Size = UDim2.new(1, -36, 0, 32)
+searchInput.BackgroundColor3 = Color3.fromRGB(39, 42, 46)
+searchInput.BorderSizePixel = 0
+searchInput.ClearTextOnFocus = false
+searchInput.Font = Enum.Font.SourceSans
+searchInput.PlaceholderText = "Search components..."
+searchInput.Text = ""
+searchInput.TextColor3 = Color3.fromRGB(230, 233, 237)
+searchInput.PlaceholderColor3 = Color3.fromRGB(120, 125, 132)
+searchInput.TextSize = 14
+searchInput.TextXAlignment = Enum.TextXAlignment.Left
+searchInput.Parent = root
+addCorner(searchInput)
+
+local searchPadding = Instance.new("UIPadding")
+searchPadding.PaddingLeft = UDim.new(0, 10)
+searchPadding.PaddingRight = UDim.new(0, 10)
+searchPadding.Parent = searchInput
 
 local libraryList = Instance.new("ScrollingFrame")
 libraryList.Name = "LibraryList"
-libraryList.Position = UDim2.new(0, 18, 0, 412)
-libraryList.Size = UDim2.new(1, -36, 1, -430)
+libraryList.Position = UDim2.new(0, 18, 0, 454)
+libraryList.Size = UDim2.new(1, -36, 1, -472)
 libraryList.BackgroundTransparency = 1
 libraryList.BorderSizePixel = 0
 libraryList.ScrollBarThickness = 5
@@ -231,6 +243,10 @@ local function setStatus(message: string, isError: boolean?)
 	statusLabel.TextColor3 = isError and Color3.fromRGB(225, 135, 125) or Color3.fromRGB(145, 150, 158)
 end
 
+local function trim(text: string): string
+	return string.match(text, "^%s*(.-)%s*$") or ""
+end
+
 local function findSelectedGuiObject(): GuiObject?
 	for _, instance in Selection:Get() do
 		if instance:IsA("GuiObject") then
@@ -238,6 +254,24 @@ local function findSelectedGuiObject(): GuiObject?
 		end
 	end
 	return nil
+end
+
+local function getOrCreateFallbackScreenGui(): ScreenGui
+	local existing = StarterGui:FindFirstChild("ComponentVaultGui")
+	if existing and existing:IsA("ScreenGui") then
+		return existing
+	end
+
+	local anyScreenGui = StarterGui:FindFirstChildWhichIsA("ScreenGui")
+	if anyScreenGui then
+		return anyScreenGui
+	end
+
+	local screenGui = Instance.new("ScreenGui")
+	screenGui.Name = "ComponentVaultGui"
+	screenGui.ResetOnSpawn = false
+	screenGui.Parent = StarterGui
+	return screenGui
 end
 
 local function findInsertParent(): Instance
@@ -252,18 +286,27 @@ local function findInsertParent(): Instance
 				return parent
 			end
 		end
+
+		if instance == StarterGui then
+			return getOrCreateFallbackScreenGui()
+		end
+
+		local guiAncestor = instance:FindFirstAncestorWhichIsA("GuiObject")
+		if guiAncestor and guiAncestor.Parent then
+			local parent = guiAncestor.Parent
+			if parent:IsA("GuiObject") or parent:IsA("LayerCollector") then
+				return parent
+			end
+		end
 	end
 
-	local existingScreenGui = StarterGui:FindFirstChildWhichIsA("ScreenGui")
-	if existingScreenGui then
-		return existingScreenGui
-	end
+	return getOrCreateFallbackScreenGui()
+end
 
-	local screenGui = Instance.new("ScreenGui")
-	screenGui.Name = "ComponentVaultGui"
-	screenGui.ResetOnSpawn = false
-	screenGui.Parent = StarterGui
-	return screenGui
+local function setWaypoint(name: string)
+	pcall(function()
+		ChangeHistoryService:SetWaypoint(name)
+	end)
 end
 
 local function setSaveEnabled(enabled: boolean)
@@ -292,7 +335,7 @@ local function refreshSelection()
 		nameInput.PlaceholderText = "Component name"
 		nameInput.Text = selectedGuiObject.Name
 		setSaveEnabled(true)
-		setStatus("Ready to save this UI hierarchy.", false)
+		setStatus("Ready to save or update a component.", false)
 	elseif selectedGuiObject then
 		selectionName.Text = selectedGuiObject.Name
 		selectionClass.Text = string.format("%s — unsupported as a root component", selectedGuiObject.ClassName)
@@ -312,7 +355,16 @@ local function refreshSelection()
 	end
 end
 
+local function serializeCurrentSelection()
+	local target = selectedGuiObject
+	if not target or not Serializer.isSupported(target) then
+		error("Select a supported GuiObject first")
+	end
+	return Serializer.serialize(target)
+end
+
 local function insertComponent(component)
+	setWaypoint("Component Vault - Before Insert")
 	local parent = findInsertParent()
 	local ok, rootOrError, warningsOrNil, statsOrNil = pcall(function()
 		return Rebuilder.rebuild(component.serialized, parent)
@@ -328,6 +380,8 @@ local function insertComponent(component)
 	local warnings = warningsOrNil or {}
 	local stats = statsOrNil or { instanceCount = 0 }
 	Selection:Set({ insertedRoot })
+	setWaypoint("Component Vault - Insert " .. component.name)
+
 	setStatus(string.format(
 		"Inserted '%s' (%d instance%s, %d warning%s).",
 		component.name,
@@ -342,18 +396,50 @@ local function insertComponent(component)
 	end
 end
 
+local function updateComponent(component)
+	local okSerialize, serializedOrError = pcall(serializeCurrentSelection)
+	if not okSerialize then
+		setStatus(tostring(serializedOrError), true)
+		return
+	end
+
+	local okUpdate, updatedOrError = pcall(function()
+		return libraryStore:update(component.id, serializedOrError)
+	end)
+	if not okUpdate then
+		setStatus(tostring(updatedOrError), true)
+		return
+	end
+
+	setStatus(string.format("Updated '%s' from the current Studio selection.", updatedOrError.name), false)
+	renderLibrary()
+end
+
+local function makeButton(parent: Instance, name: string, text: string, position: UDim2, size: UDim2, background: Color3, textColor: Color3)
+	local button = Instance.new("TextButton")
+	button.Name = name
+	button.Position = position
+	button.Size = size
+	button.BackgroundColor3 = background
+	button.BorderSizePixel = 0
+	button.Font = Enum.Font.SourceSansSemibold
+	button.Text = text
+	button.TextColor3 = textColor
+	button.TextSize = 12
+	button.Parent = parent
+	addCorner(button, 5)
+	return button
+end
+
 local function makeCard(component, layoutOrder: number)
 	local card = Instance.new("Frame")
 	card.Name = "Component_" .. component.id
 	card.LayoutOrder = layoutOrder
-	card.Size = UDim2.new(1, -2, 0, 98)
+	card.Size = UDim2.new(1, -2, 0, 110)
 	card.BackgroundColor3 = Color3.fromRGB(39, 42, 46)
 	card.BorderSizePixel = 0
 	card.Parent = libraryList
-
-	local corner = Instance.new("UICorner")
-	corner.CornerRadius = UDim.new(0, 6)
-	corner.Parent = card
+	addCorner(card)
 
 	local renameBox = Instance.new("TextBox")
 	renameBox.Name = "Name"
@@ -390,38 +476,33 @@ local function makeCard(component, layoutOrder: number)
 	details.TextXAlignment = Enum.TextXAlignment.Left
 	details.Parent = card
 
-	local insertButton = Instance.new("TextButton")
-	insertButton.Name = "Insert"
-	insertButton.Position = UDim2.new(0, 12, 0, 62)
-	insertButton.Size = UDim2.fromOffset(70, 26)
-	insertButton.BackgroundColor3 = Color3.fromRGB(50, 87, 124)
-	insertButton.BorderSizePixel = 0
-	insertButton.Font = Enum.Font.SourceSansSemibold
-	insertButton.Text = "Insert"
-	insertButton.TextColor3 = Color3.fromRGB(230, 238, 247)
-	insertButton.TextSize = 12
-	insertButton.Parent = card
-
-	local insertCorner = Instance.new("UICorner")
-	insertCorner.CornerRadius = UDim.new(0, 5)
-	insertCorner.Parent = insertButton
-
-	local deleteButton = Instance.new("TextButton")
-	deleteButton.Name = "Delete"
-	deleteButton.AnchorPoint = Vector2.new(1, 0)
-	deleteButton.Position = UDim2.new(1, -10, 0, 62)
-	deleteButton.Size = UDim2.fromOffset(58, 26)
-	deleteButton.BackgroundColor3 = Color3.fromRGB(63, 47, 47)
-	deleteButton.BorderSizePixel = 0
-	deleteButton.Font = Enum.Font.SourceSansSemibold
-	deleteButton.Text = "Delete"
-	deleteButton.TextColor3 = Color3.fromRGB(224, 177, 172)
-	deleteButton.TextSize = 12
-	deleteButton.Parent = card
-
-	local deleteCorner = Instance.new("UICorner")
-	deleteCorner.CornerRadius = UDim.new(0, 5)
-	deleteCorner.Parent = deleteButton
+	local insertButton = makeButton(
+		card,
+		"Insert",
+		"Insert",
+		UDim2.new(0, 12, 0, 66),
+		UDim2.fromOffset(68, 28),
+		Color3.fromRGB(50, 87, 124),
+		Color3.fromRGB(230, 238, 247)
+	)
+	local updateButton = makeButton(
+		card,
+		"Update",
+		"Update",
+		UDim2.new(0, 88, 0, 66),
+		UDim2.fromOffset(68, 28),
+		Color3.fromRGB(55, 73, 66),
+		Color3.fromRGB(220, 235, 226)
+	)
+	local deleteButton = makeButton(
+		card,
+		"Delete",
+		"Delete",
+		UDim2.new(1, -70, 0, 66),
+		UDim2.fromOffset(58, 28),
+		Color3.fromRGB(63, 47, 47),
+		Color3.fromRGB(224, 177, 172)
+	)
 
 	renameBox.FocusLost:Connect(function()
 		if renameBox.Text == component.name then
@@ -431,7 +512,6 @@ local function makeCard(component, layoutOrder: number)
 		local ok, result = pcall(function()
 			return libraryStore:rename(component.id, renameBox.Text)
 		end)
-
 		if ok then
 			setStatus(string.format("Renamed component to '%s'.", result.name), false)
 			renderLibrary()
@@ -445,11 +525,14 @@ local function makeCard(component, layoutOrder: number)
 		insertComponent(component)
 	end)
 
+	updateButton.Activated:Connect(function()
+		updateComponent(component)
+	end)
+
 	deleteButton.Activated:Connect(function()
 		local ok, result = pcall(function()
 			return libraryStore:delete(component.id)
 		end)
-
 		if ok and result then
 			setStatus(string.format("Deleted '%s'.", component.name), false)
 			renderLibrary()
@@ -467,16 +550,30 @@ renderLibrary = function()
 	end
 
 	local components = libraryStore:list()
-	libraryCaption.Text = string.format("MY COMPONENTS (%d)", #components)
+	local query = string.lower(trim(searchInput.Text))
+	local visible = {}
+	for _, component in components do
+		if query == "" or string.find(string.lower(component.name), query, 1, true) then
+			table.insert(visible, component)
+		end
+	end
 
-	if #components == 0 then
+	if query == "" then
+		libraryCaption.Text = string.format("MY COMPONENTS (%d)", #components)
+	else
+		libraryCaption.Text = string.format("MY COMPONENTS (%d/%d)", #visible, #components)
+	end
+
+	if #visible == 0 then
 		local empty = Instance.new("TextLabel")
 		empty.Name = "EmptyLibrary"
 		empty.LayoutOrder = 1
 		empty.Size = UDim2.new(1, -2, 0, 54)
 		empty.BackgroundTransparency = 1
 		empty.Font = Enum.Font.SourceSans
-		empty.Text = "No saved components yet.\nSelect a UI object above to create your first one."
+		empty.Text = #components == 0
+			and "No saved components yet.\nSelect a UI object above to create your first one."
+			or "No components match this search."
 		empty.TextColor3 = Color3.fromRGB(135, 140, 147)
 		empty.TextSize = 13
 		empty.TextWrapped = true
@@ -484,32 +581,34 @@ renderLibrary = function()
 		return
 	end
 
-	for index, component in components do
+	for index, component in visible do
 		makeCard(component, index)
 	end
 end
 
 local function saveSelection()
-	local target = selectedGuiObject
-	if not target or not Serializer.isSupported(target) then
+	local name = trim(nameInput.Text)
+	if name == "" then
+		setStatus("Enter a component name first.", true)
 		return
 	end
 
-	local okSerialize, serializedOrError = pcall(function()
-		return Serializer.serialize(target)
-	end)
+	local duplicate = libraryStore:findByName(name)
+	if duplicate then
+		setStatus(string.format("'%s' already exists. Use Update on that saved component or choose another name.", duplicate.name), true)
+		return
+	end
 
+	local okSerialize, serializedOrError = pcall(serializeCurrentSelection)
 	if not okSerialize then
 		setStatus("Serialization failed: " .. tostring(serializedOrError), true)
-		warn("[Component Vault] Serialization failed:", serializedOrError)
 		return
 	end
 
 	local serialized = serializedOrError
 	local okSave, savedOrError = pcall(function()
-		return libraryStore:add(nameInput.Text, serialized)
+		return libraryStore:add(name, serialized)
 	end)
-
 	if not okSave then
 		setStatus(tostring(savedOrError), true)
 		return
@@ -524,7 +623,11 @@ local function saveSelection()
 		serialized.stats.propertyCount,
 		#serialized.warnings,
 		#serialized.warnings == 1 and "" or "s"
-	), false)
+	), #serialized.warnings > 0)
+
+	for _, warningMessage in serialized.warnings do
+		warn("[Component Vault]", warningMessage)
+	end
 
 	renderLibrary()
 end
@@ -538,6 +641,7 @@ toggleButton.Click:Connect(function()
 end)
 
 saveButton.Activated:Connect(saveSelection)
+searchInput:GetPropertyChangedSignal("Text"):Connect(renderLibrary)
 widget:GetPropertyChangedSignal("Enabled"):Connect(syncButtonState)
 Selection.SelectionChanged:Connect(refreshSelection)
 
