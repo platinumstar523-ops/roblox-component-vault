@@ -2,6 +2,32 @@ local Rebuilder = {}
 
 local SUPPORTED_SCHEMA_VERSION = 1
 
+local SUPPORTED_CLASSES = {
+	Frame = true,
+	CanvasGroup = true,
+	TextLabel = true,
+	TextButton = true,
+	TextBox = true,
+	ImageLabel = true,
+	ImageButton = true,
+	ScrollingFrame = true,
+	ViewportFrame = true,
+	VideoFrame = true,
+	UICorner = true,
+	UIStroke = true,
+	UIGradient = true,
+	UIPadding = true,
+	UIListLayout = true,
+	UIGridLayout = true,
+	UIPageLayout = true,
+	UITableLayout = true,
+	UIAspectRatioConstraint = true,
+	UISizeConstraint = true,
+	UITextSizeConstraint = true,
+	UIScale = true,
+	UIFlexItem = true,
+}
+
 local PROPERTY_PRIORITY = {
 	Name = -30,
 	Font = -20,
@@ -125,13 +151,9 @@ end
 local function rebuildNode(node: any, parent: Instance?, warnings: { string }, stats: any): Instance
 	assert(type(node) == "table", "Invalid serialized node")
 	assert(type(node.className) == "string", "Serialized node is missing className")
+	assert(SUPPORTED_CLASSES[node.className] == true, string.format("Unsupported component class '%s'", tostring(node.className)))
 
-	local okCreate, instanceOrError = pcall(function()
-		return Instance.new(node.className)
-	end)
-	assert(okCreate, string.format("Could not create %s: %s", tostring(node.className), tostring(instanceOrError)))
-
-	local instance = instanceOrError :: Instance
+	local instance = Instance.new(node.className)
 	instance.Name = type(node.name) == "string" and node.name or node.className
 	applyProperties(instance, node.properties, warnings)
 	applyAttributes(instance, node.attributes, warnings)
