@@ -30,6 +30,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Optional component tags with name/class/tag search.
 - Portable text-based library export/import with duplicate-name renaming and regenerated imported IDs.
 - Transfer panel for backing up, moving, or sharing Component Vault libraries.
+- Non-interactive thumbnail previews for saved components.
+- Library sorting by recently updated, name, or root class.
+- Quick tag-filter cycling alongside text search.
+- Updated-at metadata on component cards.
+
+### Changed
+
+- Refactored the plugin UI into a dedicated `MainWidget` module so the entry point stays small and UI features are easier to maintain.
 
 ### Fixed
 
