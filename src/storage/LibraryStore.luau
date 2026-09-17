@@ -1,9 +1,12 @@
 local HttpService = game:GetService("HttpService")
+local EncodingService = game:GetService("EncodingService")
 
 local LibraryStore = {}
 LibraryStore.__index = LibraryStore
 
-local SETTINGS_KEY = "ComponentVault.Library.v1"
+-- Roblox warns that periods in plugin setting keys can corrupt settings files.
+-- Keep this key limited to safe characters.
+local SETTINGS_KEY = "ComponentVault_Library_v1"
 local STORAGE_VERSION = 1
 
 local function isArray(value: any): boolean
@@ -51,9 +54,14 @@ local function sanitizeLibrary(raw: any)
 	}
 end
 
+local function encodeLibrary(library: any): string
+	local json = HttpService:JSONEncode(library)
+	local encodedBuffer = EncodingService:Base64Encode(buffer.fromstring(json))
+	return buffer.tostring(encodedBuffer)
+end
+
 local function decodeStoredValue(raw: any)
-	-- Older development builds wrote the table directly. Keep accepting that
-	-- representation so testers do not lose data when upgrading.
+	-- Accept the earliest development format if Studio happens to have retained it.
 	if type(raw) == "table" then
 		return sanitizeLibrary(raw)
 	end
@@ -63,11 +71,13 @@ local function decodeStoredValue(raw: any)
 	end
 
 	local ok, decoded = pcall(function()
-		return HttpService:JSONDecode(raw)
+		local decodedBuffer = EncodingService:Base64Decode(buffer.fromstring(raw))
+		local json = buffer.tostring(decodedBuffer)
+		return HttpService:JSONDecode(json)
 	end)
 
 	if not ok then
-		warn("[Component Vault] Could not decode saved library JSON:", decoded)
+		warn("[Component Vault] Could not decode saved library:", decoded)
 		return emptyLibrary()
 	end
 
@@ -99,7 +109,7 @@ end
 
 function LibraryStore:_persist()
 	local okEncode, encodedOrError = pcall(function()
-		return HttpService:JSONEncode(self._library)
+		return encodeLibrary(self._library)
 	end)
 
 	if not okEncode then
@@ -115,19 +125,23 @@ function LibraryStore:_persist()
 		error(string.format("Failed to save Component Vault library: %s", tostring(saveError)))
 	end
 
-	-- Read the setting back immediately. This catches silent development-time
-	-- storage problems before the UI claims that a component was saved.
-	local okVerify, storedValue = pcall(function()
-		return self._plugin:GetSetting(SETTINGS_KEY)
-	end)
+	-- GetSetting can briefly return nil during Studio/plugin races, so retry
+	-- instead of treating the first read as a hard persistence failure.
+	for attempt = 1, 5 do
+		local okVerify, storedValue = pcall(function()
+			return self._plugin:GetSetting(SETTINGS_KEY)
+		end)
 
-	if not okVerify then
-		error(string.format("Saved library but could not verify it: %s", tostring(storedValue)))
+		if okVerify and storedValue == encoded then
+			return
+		end
+
+		if attempt < 5 then
+			task.wait(0.1)
+		end
 	end
 
-	if storedValue ~= encoded then
-		error("Component Vault could not verify that the local library was persisted")
-	end
+	error("Component Vault could not verify that the local library was persisted")
 end
 
 function LibraryStore:list()
