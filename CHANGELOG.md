@@ -13,3 +13,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Source folders for plugin UI, component handling, storage, and utilities.
 - Rojo plugin project configuration.
 - Initial Roblox Studio toolbar button and dockable Component Vault window.
+- Live detection of the selected Studio `GuiObject`.
+- Versioned UI hierarchy serializer for common Roblox UI objects, decorators, layouts, properties, attributes, and Roblox datatypes.
+- Serializer status feedback and explicit warnings for unsupported descendants or properties.
