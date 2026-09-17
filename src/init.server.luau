@@ -1,8 +1,10 @@
 assert(plugin, "Component Vault must run as a Roblox Studio plugin")
 
 local Selection = game:GetService("Selection")
+local StarterGui = game:GetService("StarterGui")
 
 local Serializer = require(script.components.Serializer)
+local Rebuilder = require(script.components.Rebuilder)
 local LibraryStore = require(script.storage.LibraryStore)
 
 local TOOLBAR_NAME = "Component Vault"
@@ -222,14 +224,11 @@ listLayout.SortOrder = Enum.SortOrder.LayoutOrder
 listLayout.Parent = libraryList
 
 local selectedGuiObject: GuiObject? = nil
+local renderLibrary
 
 local function setStatus(message: string, isError: boolean?)
 	statusLabel.Text = message
-	if isError then
-		statusLabel.TextColor3 = Color3.fromRGB(225, 135, 125)
-	else
-		statusLabel.TextColor3 = Color3.fromRGB(145, 150, 158)
-	end
+	statusLabel.TextColor3 = isError and Color3.fromRGB(225, 135, 125) or Color3.fromRGB(145, 150, 158)
 end
 
 local function findSelectedGuiObject(): GuiObject?
@@ -239,6 +238,32 @@ local function findSelectedGuiObject(): GuiObject?
 		end
 	end
 	return nil
+end
+
+local function findInsertParent(): Instance
+	for _, instance in Selection:Get() do
+		if instance:IsA("LayerCollector") then
+			return instance
+		end
+
+		if instance:IsA("GuiObject") then
+			local parent = instance.Parent
+			if parent and (parent:IsA("GuiObject") or parent:IsA("LayerCollector")) then
+				return parent
+			end
+		end
+	end
+
+	local existingScreenGui = StarterGui:FindFirstChildWhichIsA("ScreenGui")
+	if existingScreenGui then
+		return existingScreenGui
+	end
+
+	local screenGui = Instance.new("ScreenGui")
+	screenGui.Name = "ComponentVaultGui"
+	screenGui.ResetOnSpawn = false
+	screenGui.Parent = StarterGui
+	return screenGui
 end
 
 local function setSaveEnabled(enabled: boolean)
@@ -257,8 +282,6 @@ local function setSaveEnabled(enabled: boolean)
 	end
 end
 
-local renderLibrary
-
 local function refreshSelection()
 	selectedGuiObject = findSelectedGuiObject()
 
@@ -269,7 +292,7 @@ local function refreshSelection()
 		nameInput.PlaceholderText = "Component name"
 		nameInput.Text = selectedGuiObject.Name
 		setSaveEnabled(true)
-		setStatus("Ready to save. Component Vault will serialize this UI hierarchy and store it in your local library.", false)
+		setStatus("Ready to save this UI hierarchy.", false)
 	elseif selectedGuiObject then
 		selectionName.Text = selectedGuiObject.Name
 		selectionClass.Text = string.format("%s — unsupported as a root component", selectedGuiObject.ClassName)
@@ -285,7 +308,37 @@ local function refreshSelection()
 		nameInput.Text = ""
 		nameInput.PlaceholderText = "Select UI first"
 		setSaveEnabled(false)
-		setStatus("Saved components are stored locally by the plugin and are available across Studio places.", false)
+		setStatus("Saved components are available across Studio places.", false)
+	end
+end
+
+local function insertComponent(component)
+	local parent = findInsertParent()
+	local ok, rootOrError, warningsOrNil, statsOrNil = pcall(function()
+		return Rebuilder.rebuild(component.serialized, parent)
+	end)
+
+	if not ok then
+		setStatus("Insert failed: " .. tostring(rootOrError), true)
+		warn("[Component Vault] Insert failed:", rootOrError)
+		return
+	end
+
+	local insertedRoot = rootOrError :: Instance
+	local warnings = warningsOrNil or {}
+	local stats = statsOrNil or { instanceCount = 0 }
+	Selection:Set({ insertedRoot })
+	setStatus(string.format(
+		"Inserted '%s' (%d instance%s, %d warning%s).",
+		component.name,
+		stats.instanceCount,
+		stats.instanceCount == 1 and "" or "s",
+		#warnings,
+		#warnings == 1 and "" or "s"
+	), #warnings > 0)
+
+	for _, warningMessage in warnings do
+		warn("[Component Vault]", warningMessage)
 	end
 end
 
@@ -293,7 +346,7 @@ local function makeCard(component, layoutOrder: number)
 	local card = Instance.new("Frame")
 	card.Name = "Component_" .. component.id
 	card.LayoutOrder = layoutOrder
-	card.Size = UDim2.new(1, -2, 0, 82)
+	card.Size = UDim2.new(1, -2, 0, 98)
 	card.BackgroundColor3 = Color3.fromRGB(39, 42, 46)
 	card.BorderSizePixel = 0
 	card.Parent = libraryList
@@ -306,7 +359,7 @@ local function makeCard(component, layoutOrder: number)
 	renameBox.Name = "Name"
 	renameBox.BackgroundTransparency = 1
 	renameBox.Position = UDim2.new(0, 12, 0, 8)
-	renameBox.Size = UDim2.new(1, -86, 0, 22)
+	renameBox.Size = UDim2.new(1, -24, 0, 22)
 	renameBox.ClearTextOnFocus = false
 	renameBox.Font = Enum.Font.SourceSansSemibold
 	renameBox.Text = component.name
@@ -337,22 +390,26 @@ local function makeCard(component, layoutOrder: number)
 	details.TextXAlignment = Enum.TextXAlignment.Left
 	details.Parent = card
 
-	local hint = Instance.new("TextLabel")
-	hint.Name = "Hint"
-	hint.BackgroundTransparency = 1
-	hint.Position = UDim2.new(0, 12, 0, 56)
-	hint.Size = UDim2.new(1, -86, 0, 16)
-	hint.Font = Enum.Font.SourceSans
-	hint.Text = "Edit the name above to rename"
-	hint.TextColor3 = Color3.fromRGB(112, 117, 124)
-	hint.TextSize = 11
-	hint.TextXAlignment = Enum.TextXAlignment.Left
-	hint.Parent = card
+	local insertButton = Instance.new("TextButton")
+	insertButton.Name = "Insert"
+	insertButton.Position = UDim2.new(0, 12, 0, 62)
+	insertButton.Size = UDim2.fromOffset(70, 26)
+	insertButton.BackgroundColor3 = Color3.fromRGB(50, 87, 124)
+	insertButton.BorderSizePixel = 0
+	insertButton.Font = Enum.Font.SourceSansSemibold
+	insertButton.Text = "Insert"
+	insertButton.TextColor3 = Color3.fromRGB(230, 238, 247)
+	insertButton.TextSize = 12
+	insertButton.Parent = card
+
+	local insertCorner = Instance.new("UICorner")
+	insertCorner.CornerRadius = UDim.new(0, 5)
+	insertCorner.Parent = insertButton
 
 	local deleteButton = Instance.new("TextButton")
 	deleteButton.Name = "Delete"
 	deleteButton.AnchorPoint = Vector2.new(1, 0)
-	deleteButton.Position = UDim2.new(1, -10, 0, 10)
+	deleteButton.Position = UDim2.new(1, -10, 0, 62)
 	deleteButton.Size = UDim2.fromOffset(58, 26)
 	deleteButton.BackgroundColor3 = Color3.fromRGB(63, 47, 47)
 	deleteButton.BorderSizePixel = 0
@@ -382,6 +439,10 @@ local function makeCard(component, layoutOrder: number)
 			renameBox.Text = component.name
 			setStatus(tostring(result), true)
 		end
+	end)
+
+	insertButton.Activated:Connect(function()
+		insertComponent(component)
 	end)
 
 	deleteButton.Activated:Connect(function()
