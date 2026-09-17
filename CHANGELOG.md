@@ -21,6 +21,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Library cards showing root class and serialized instance/property counts.
 - Inline component renaming and deletion.
 - Explicit JSON encoding and immediate read-back verification for local library persistence.
+- Schema v1 component reconstruction for saved UI hierarchies, properties, attributes, and encoded Roblox datatypes.
+- Insert actions for saved components with automatic target selection and fallback `ScreenGui` creation.
 
 ### Fixed
 
