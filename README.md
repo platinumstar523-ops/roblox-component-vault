@@ -2,7 +2,7 @@
 
 Component Vault is an open-source Roblox Studio plugin for saving, organizing, and reusing UI components across experiences.
 
-> **Status: pre-release.** The core workflow works, but there is not a tagged public release yet. Expect format and UI changes before v0.1.0.
+> **Latest release:** [v0.1.0](https://github.com/platinumstar523-ops/roblox-component-vault/releases/tag/v0.1.0)
 
 ## What works today
 
@@ -26,7 +26,13 @@ Component Vault does not require a runtime framework. Inserted components are or
 
 Saved components remain available across Studio places on the same local Studio installation.
 
-## Build and install from source
+## Install v0.1.0
+
+Download `ComponentVault.rbxm` from the [v0.1.0 release](https://github.com/platinumstar523-ops/roblox-component-vault/releases/tag/v0.1.0), place it in Roblox Studio's local **Plugins Folder**, and restart Studio.
+
+The **Component Vault** toolbar button should then open the dockable plugin window.
+
+## Build from source
 
 Requirements:
 
@@ -40,9 +46,7 @@ cd roblox-component-vault
 rojo build -p "ComponentVault.rbxm"
 ```
 
-Then open Roblox Studio's local **Plugins Folder**, copy `ComponentVault.rbxm` into it, and restart Studio. The **Component Vault** toolbar button should open the dockable plugin window.
-
-If Rojo is installed through Aftman on Windows and is not on `PATH`, the equivalent command is:
+If Rojo is installed through Aftman on Windows and is not on `PATH`:
 
 ```powershell
 & "$HOME\.aftman\bin\rojo.exe" build -p "ComponentVault.rbxm"
@@ -51,8 +55,6 @@ If Rojo is installed through Aftman on Windows and is not on `PATH`, the equival
 See [docs/getting-started.md](docs/getting-started.md) for the full development and testing workflow.
 
 ## Current limitations
-
-Component Vault is intentionally conservative before its first release:
 
 - The saved library is local to the Studio installation; there is no cloud or team sync yet.
 - Serialization covers a curated set of common Roblox UI classes and properties, not every possible Instance or property.
