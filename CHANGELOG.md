@@ -20,3 +20,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Named component saving from the current Studio selection.
 - Library cards showing root class and serialized instance/property counts.
 - Inline component renaming and deletion.
+- Explicit JSON encoding and immediate read-back verification for local library persistence.
+
+### Fixed
+
+- Hardened cross-place persistence after local-plugin testing showed a saved library could reload as empty.
