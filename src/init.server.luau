@@ -21,10 +21,10 @@ local widgetInfo = DockWidgetPluginGuiInfo.new(
 	Enum.InitialDockState.Left,
 	false,
 	false,
-	420,
-	700,
-	320,
-	460
+	440,
+	760,
+	340,
+	500
 )
 
 local widget = plugin:CreateDockWidgetPluginGuiAsync(WIDGET_ID, widgetInfo)
@@ -37,7 +37,29 @@ root.BackgroundColor3 = Color3.fromRGB(30, 32, 35)
 root.BorderSizePixel = 0
 root.Parent = widget
 
-local function makeLabel(name: string, text: string, position: UDim2, size: UDim2, textSize: number, color: Color3, bold: boolean?)
+local function addCorner(gui: GuiObject, radius: number?)
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0, radius or 6)
+	corner.Parent = gui
+end
+
+local function addHorizontalPadding(gui: GuiObject, amount: number?)
+	local padding = Instance.new("UIPadding")
+	padding.PaddingLeft = UDim.new(0, amount or 10)
+	padding.PaddingRight = UDim.new(0, amount or 10)
+	padding.Parent = gui
+end
+
+local function makeLabel(
+	parent: Instance,
+	name: string,
+	text: string,
+	position: UDim2,
+	size: UDim2,
+	textSize: number,
+	color: Color3,
+	bold: boolean?
+)
 	local label = Instance.new("TextLabel")
 	label.Name = name
 	label.BackgroundTransparency = 1
@@ -50,31 +72,83 @@ local function makeLabel(name: string, text: string, position: UDim2, size: UDim
 	label.TextWrapped = true
 	label.TextXAlignment = Enum.TextXAlignment.Left
 	label.TextYAlignment = Enum.TextYAlignment.Top
-	label.Parent = root
+	label.Parent = parent
 	return label
 end
 
-local function addCorner(gui: GuiObject, radius: number?)
-	local corner = Instance.new("UICorner")
-	corner.CornerRadius = UDim.new(0, radius or 6)
-	corner.Parent = gui
+local function makeTextBox(parent: Instance, name: string, placeholder: string, position: UDim2, size: UDim2)
+	local box = Instance.new("TextBox")
+	box.Name = name
+	box.Position = position
+	box.Size = size
+	box.BackgroundColor3 = Color3.fromRGB(39, 42, 46)
+	box.BorderSizePixel = 0
+	box.ClearTextOnFocus = false
+	box.Font = Enum.Font.SourceSans
+	box.PlaceholderText = placeholder
+	box.Text = ""
+	box.TextColor3 = Color3.fromRGB(235, 238, 242)
+	box.PlaceholderColor3 = Color3.fromRGB(120, 125, 132)
+	box.TextSize = 14
+	box.TextXAlignment = Enum.TextXAlignment.Left
+	box.Parent = parent
+	addCorner(box)
+	addHorizontalPadding(box)
+	return box
+end
+
+local function makeButton(
+	parent: Instance,
+	name: string,
+	text: string,
+	position: UDim2,
+	size: UDim2,
+	background: Color3,
+	textColor: Color3
+)
+	local button = Instance.new("TextButton")
+	button.Name = name
+	button.Position = position
+	button.Size = size
+	button.BackgroundColor3 = background
+	button.BorderSizePixel = 0
+	button.Font = Enum.Font.SourceSansSemibold
+	button.Text = text
+	button.TextColor3 = textColor
+	button.TextSize = 12
+	button.Parent = parent
+	addCorner(button, 5)
+	return button
 end
 
 local header = makeLabel(
+	root,
 	"Header",
 	"Component Vault",
 	UDim2.new(0, 18, 0, 16),
-	UDim2.new(1, -36, 0, 30),
+	UDim2.new(1, -120, 0, 30),
 	24,
 	Color3.fromRGB(245, 245, 245),
 	true
 )
+header.TextTruncate = Enum.TextTruncate.AtEnd
 
-local subtitle = makeLabel(
+local transferButton = makeButton(
+	root,
+	"Transfer",
+	"Transfer",
+	UDim2.new(1, -92, 0, 18),
+	UDim2.fromOffset(74, 26),
+	Color3.fromRGB(52, 58, 66),
+	Color3.fromRGB(224, 228, 233)
+)
+
+makeLabel(
+	root,
 	"Subtitle",
 	"Save reusable Roblox UI components and access them from other projects.",
 	UDim2.new(0, 18, 0, 50),
-	UDim2.new(1, -36, 0, 44),
+	UDim2.new(1, -36, 0, 40),
 	15,
 	Color3.fromRGB(175, 179, 185),
 	false
@@ -84,144 +158,48 @@ local divider = Instance.new("Frame")
 divider.Name = "Divider"
 divider.BackgroundColor3 = Color3.fromRGB(55, 58, 63)
 divider.BorderSizePixel = 0
-divider.Position = UDim2.new(0, 18, 0, 104)
+divider.Position = UDim2.new(0, 18, 0, 100)
 divider.Size = UDim2.new(1, -36, 0, 1)
 divider.Parent = root
 
-makeLabel(
-	"SelectionCaption",
-	"STUDIO SELECTION",
-	UDim2.new(0, 18, 0, 120),
-	UDim2.new(1, -36, 0, 18),
-	12,
-	Color3.fromRGB(135, 140, 147),
-	true
-)
+makeLabel(root, "SelectionCaption", "STUDIO SELECTION", UDim2.new(0, 18, 0, 114), UDim2.new(1, -36, 0, 18), 12, Color3.fromRGB(135, 140, 147), true)
 
 local selectionCard = Instance.new("Frame")
 selectionCard.Name = "SelectionCard"
-selectionCard.Position = UDim2.new(0, 18, 0, 144)
+selectionCard.Position = UDim2.new(0, 18, 0, 136)
 selectionCard.Size = UDim2.new(1, -36, 0, 58)
 selectionCard.BackgroundColor3 = Color3.fromRGB(39, 42, 46)
 selectionCard.BorderSizePixel = 0
 selectionCard.Parent = root
 addCorner(selectionCard)
 
-local selectionName = makeLabel(
-	"SelectionName",
-	"No supported UI selected",
-	UDim2.new(0, 30, 0, 151),
-	UDim2.new(1, -60, 0, 22),
-	16,
-	Color3.fromRGB(225, 228, 232),
-	true
-)
+local selectionName = makeLabel(selectionCard, "SelectionName", "No supported UI selected", UDim2.new(0, 12, 0, 7), UDim2.new(1, -24, 0, 22), 16, Color3.fromRGB(225, 228, 232), true)
 selectionName.TextTruncate = Enum.TextTruncate.AtEnd
 
-local selectionClass = makeLabel(
-	"SelectionClass",
-	"Select a GuiObject in Explorer or the viewport.",
-	UDim2.new(0, 30, 0, 175),
-	UDim2.new(1, -60, 0, 18),
-	13,
-	Color3.fromRGB(150, 155, 162),
-	false
-)
+local selectionClass = makeLabel(selectionCard, "SelectionClass", "Select a GuiObject in Explorer or the viewport.", UDim2.new(0, 12, 0, 31), UDim2.new(1, -24, 0, 18), 13, Color3.fromRGB(150, 155, 162), false)
 selectionClass.TextTruncate = Enum.TextTruncate.AtEnd
 
-makeLabel(
-	"NameCaption",
-	"COMPONENT NAME",
-	UDim2.new(0, 18, 0, 218),
-	UDim2.new(1, -36, 0, 18),
-	12,
-	Color3.fromRGB(135, 140, 147),
-	true
-)
-
-local nameInput = Instance.new("TextBox")
-nameInput.Name = "ComponentName"
-nameInput.Position = UDim2.new(0, 18, 0, 242)
-nameInput.Size = UDim2.new(1, -36, 0, 36)
-nameInput.BackgroundColor3 = Color3.fromRGB(39, 42, 46)
-nameInput.BorderSizePixel = 0
-nameInput.ClearTextOnFocus = false
-nameInput.Font = Enum.Font.SourceSans
-nameInput.PlaceholderText = "Select UI first"
-nameInput.Text = ""
-nameInput.TextColor3 = Color3.fromRGB(235, 238, 242)
-nameInput.PlaceholderColor3 = Color3.fromRGB(120, 125, 132)
+makeLabel(root, "NameCaption", "COMPONENT NAME", UDim2.new(0, 18, 0, 208), UDim2.new(1, -36, 0, 18), 12, Color3.fromRGB(135, 140, 147), true)
+local nameInput = makeTextBox(root, "ComponentName", "Select UI first", UDim2.new(0, 18, 0, 230), UDim2.new(1, -36, 0, 34))
 nameInput.TextSize = 15
-nameInput.TextXAlignment = Enum.TextXAlignment.Left
-nameInput.Parent = root
-addCorner(nameInput)
 
-local namePadding = Instance.new("UIPadding")
-namePadding.PaddingLeft = UDim.new(0, 10)
-namePadding.PaddingRight = UDim.new(0, 10)
-namePadding.Parent = nameInput
+makeLabel(root, "TagsCaption", "TAGS (OPTIONAL)", UDim2.new(0, 18, 0, 272), UDim2.new(1, -36, 0, 18), 12, Color3.fromRGB(135, 140, 147), true)
+local tagsInput = makeTextBox(root, "ComponentTags", "button, shop, primary", UDim2.new(0, 18, 0, 294), UDim2.new(1, -36, 0, 32))
 
-local saveButton = Instance.new("TextButton")
-saveButton.Name = "SaveComponent"
-saveButton.Position = UDim2.new(0, 18, 0, 288)
-saveButton.Size = UDim2.new(1, -36, 0, 38)
-saveButton.BackgroundColor3 = Color3.fromRGB(48, 55, 63)
-saveButton.BorderSizePixel = 0
+local saveButton = makeButton(root, "SaveComponent", "Select a supported GuiObject", UDim2.new(0, 18, 0, 336), UDim2.new(1, -36, 0, 38), Color3.fromRGB(48, 55, 63), Color3.fromRGB(170, 176, 184))
+saveButton.TextSize = 16
 saveButton.AutoButtonColor = false
 saveButton.Active = false
-saveButton.Font = Enum.Font.SourceSansSemibold
-saveButton.Text = "Select a supported GuiObject"
-saveButton.TextColor3 = Color3.fromRGB(170, 176, 184)
-saveButton.TextSize = 16
-saveButton.Parent = root
-addCorner(saveButton)
 
-local statusLabel = makeLabel(
-	"Status",
-	"Saved components are available across Studio places.",
-	UDim2.new(0, 18, 0, 334),
-	UDim2.new(1, -36, 0, 42),
-	13,
-	Color3.fromRGB(145, 150, 158),
-	false
-)
+local statusLabel = makeLabel(root, "Status", "Saved components are available across Studio places.", UDim2.new(0, 18, 0, 382), UDim2.new(1, -36, 0, 40), 13, Color3.fromRGB(145, 150, 158), false)
 
-local libraryCaption = makeLabel(
-	"LibraryCaption",
-	"MY COMPONENTS",
-	UDim2.new(0, 18, 0, 388),
-	UDim2.new(1, -36, 0, 18),
-	12,
-	Color3.fromRGB(135, 140, 147),
-	true
-)
-
-local searchInput = Instance.new("TextBox")
-searchInput.Name = "Search"
-searchInput.Position = UDim2.new(0, 18, 0, 412)
-searchInput.Size = UDim2.new(1, -36, 0, 32)
-searchInput.BackgroundColor3 = Color3.fromRGB(39, 42, 46)
-searchInput.BorderSizePixel = 0
-searchInput.ClearTextOnFocus = false
-searchInput.Font = Enum.Font.SourceSans
-searchInput.PlaceholderText = "Search components..."
-searchInput.Text = ""
-searchInput.TextColor3 = Color3.fromRGB(230, 233, 237)
-searchInput.PlaceholderColor3 = Color3.fromRGB(120, 125, 132)
-searchInput.TextSize = 14
-searchInput.TextXAlignment = Enum.TextXAlignment.Left
-searchInput.Parent = root
-addCorner(searchInput)
-
-local searchPadding = Instance.new("UIPadding")
-searchPadding.PaddingLeft = UDim.new(0, 10)
-searchPadding.PaddingRight = UDim.new(0, 10)
-searchPadding.Parent = searchInput
+local libraryCaption = makeLabel(root, "LibraryCaption", "MY COMPONENTS", UDim2.new(0, 18, 0, 430), UDim2.new(1, -36, 0, 18), 12, Color3.fromRGB(135, 140, 147), true)
+local searchInput = makeTextBox(root, "Search", "Search names, classes, or tags...", UDim2.new(0, 18, 0, 454), UDim2.new(1, -36, 0, 32))
 
 local libraryList = Instance.new("ScrollingFrame")
 libraryList.Name = "LibraryList"
-libraryList.Position = UDim2.new(0, 18, 0, 454)
-libraryList.Size = UDim2.new(1, -36, 1, -472)
+libraryList.Position = UDim2.new(0, 18, 0, 496)
+libraryList.Size = UDim2.new(1, -36, 1, -514)
 libraryList.BackgroundTransparency = 1
 libraryList.BorderSizePixel = 0
 libraryList.ScrollBarThickness = 5
@@ -235,16 +213,75 @@ listLayout.Padding = UDim.new(0, 8)
 listLayout.SortOrder = Enum.SortOrder.LayoutOrder
 listLayout.Parent = libraryList
 
+-- Transfer overlay. Export text can be copied manually; import text can be pasted here.
+local transferPanel = Instance.new("Frame")
+transferPanel.Name = "TransferPanel"
+transferPanel.Position = UDim2.new(0, 12, 0, 70)
+transferPanel.Size = UDim2.new(1, -24, 1, -84)
+transferPanel.BackgroundColor3 = Color3.fromRGB(25, 27, 30)
+transferPanel.BorderSizePixel = 0
+transferPanel.Visible = false
+transferPanel.ZIndex = 20
+transferPanel.Parent = root
+addCorner(transferPanel, 8)
+
+local transferStroke = Instance.new("UIStroke")
+transferStroke.Color = Color3.fromRGB(68, 72, 78)
+transferStroke.Thickness = 1
+transferStroke.Parent = transferPanel
+
+local transferTitle = makeLabel(transferPanel, "Title", "Library Transfer", UDim2.new(0, 16, 0, 14), UDim2.new(1, -100, 0, 28), 20, Color3.fromRGB(242, 244, 247), true)
+transferTitle.ZIndex = 21
+
+local closeTransferButton = makeButton(transferPanel, "Close", "Close", UDim2.new(1, -70, 0, 14), UDim2.fromOffset(54, 26), Color3.fromRGB(57, 60, 65), Color3.fromRGB(225, 228, 232))
+closeTransferButton.ZIndex = 21
+
+local transferHelp = makeLabel(transferPanel, "Help", "Export fills the box below. Use Ctrl+A / Ctrl+C to copy it. To import, paste Component Vault export JSON into the box and click Import.", UDim2.new(0, 16, 0, 52), UDim2.new(1, -32, 0, 58), 13, Color3.fromRGB(165, 170, 177), false)
+transferHelp.ZIndex = 21
+
+local transferBox = Instance.new("TextBox")
+transferBox.Name = "TransferData"
+transferBox.Position = UDim2.new(0, 16, 0, 118)
+transferBox.Size = UDim2.new(1, -32, 1, -180)
+transferBox.BackgroundColor3 = Color3.fromRGB(35, 38, 42)
+transferBox.BorderSizePixel = 0
+transferBox.ClearTextOnFocus = false
+transferBox.Font = Enum.Font.Code
+transferBox.MultiLine = true
+transferBox.PlaceholderText = "Export data appears here, or paste export JSON here to import."
+transferBox.Text = ""
+transferBox.TextColor3 = Color3.fromRGB(220, 224, 229)
+transferBox.PlaceholderColor3 = Color3.fromRGB(115, 120, 126)
+transferBox.TextSize = 12
+transferBox.TextWrapped = true
+transferBox.TextXAlignment = Enum.TextXAlignment.Left
+transferBox.TextYAlignment = Enum.TextYAlignment.Top
+transferBox.ZIndex = 21
+transferBox.Parent = transferPanel
+addCorner(transferBox)
+
+local transferBoxPadding = Instance.new("UIPadding")
+transferBoxPadding.PaddingTop = UDim.new(0, 8)
+transferBoxPadding.PaddingBottom = UDim.new(0, 8)
+transferBoxPadding.PaddingLeft = UDim.new(0, 8)
+transferBoxPadding.PaddingRight = UDim.new(0, 8)
+transferBoxPadding.Parent = transferBox
+
+local exportAllButton = makeButton(transferPanel, "ExportAll", "Export All", UDim2.new(0, 16, 1, -48), UDim2.fromOffset(94, 30), Color3.fromRGB(50, 87, 124), Color3.fromRGB(232, 239, 247))
+exportAllButton.ZIndex = 21
+local importButton = makeButton(transferPanel, "Import", "Import", UDim2.new(0, 118, 1, -48), UDim2.fromOffset(84, 30), Color3.fromRGB(55, 82, 66), Color3.fromRGB(224, 238, 228))
+importButton.ZIndex = 21
+
 local selectedGuiObject: GuiObject? = nil
 local renderLibrary
+
+local function trim(text: string): string
+	return string.match(text, "^%s*(.-)%s*$") or ""
+end
 
 local function setStatus(message: string, isError: boolean?)
 	statusLabel.Text = message
 	statusLabel.TextColor3 = isError and Color3.fromRGB(225, 135, 125) or Color3.fromRGB(145, 150, 158)
-end
-
-local function trim(text: string): string
-	return string.match(text, "^%s*(.-)%s*$") or ""
 end
 
 local function findSelectedGuiObject(): GuiObject?
@@ -313,6 +350,7 @@ local function setSaveEnabled(enabled: boolean)
 	saveButton.Active = enabled
 	saveButton.AutoButtonColor = enabled
 	nameInput.TextEditable = enabled
+	tagsInput.TextEditable = enabled
 
 	if enabled then
 		saveButton.BackgroundColor3 = Color3.fromRGB(54, 95, 140)
@@ -415,94 +453,50 @@ local function updateComponent(component)
 	renderLibrary()
 end
 
-local function makeButton(parent: Instance, name: string, text: string, position: UDim2, size: UDim2, background: Color3, textColor: Color3)
-	local button = Instance.new("TextButton")
-	button.Name = name
-	button.Position = position
-	button.Size = size
-	button.BackgroundColor3 = background
-	button.BorderSizePixel = 0
-	button.Font = Enum.Font.SourceSansSemibold
-	button.Text = text
-	button.TextColor3 = textColor
-	button.TextSize = 12
-	button.Parent = parent
-	addCorner(button, 5)
-	return button
-end
-
 local function makeCard(component, layoutOrder: number)
 	local card = Instance.new("Frame")
 	card.Name = "Component_" .. component.id
 	card.LayoutOrder = layoutOrder
-	card.Size = UDim2.new(1, -2, 0, 110)
+	card.Size = UDim2.new(1, -2, 0, 136)
 	card.BackgroundColor3 = Color3.fromRGB(39, 42, 46)
 	card.BorderSizePixel = 0
 	card.Parent = libraryList
 	addCorner(card)
 
-	local renameBox = Instance.new("TextBox")
-	renameBox.Name = "Name"
+	local renameBox = makeTextBox(card, "Name", "Component name", UDim2.new(0, 12, 0, 8), UDim2.new(1, -24, 0, 26))
 	renameBox.BackgroundTransparency = 1
-	renameBox.Position = UDim2.new(0, 12, 0, 8)
-	renameBox.Size = UDim2.new(1, -24, 0, 22)
-	renameBox.ClearTextOnFocus = false
-	renameBox.Font = Enum.Font.SourceSansSemibold
 	renameBox.Text = component.name
-	renameBox.TextColor3 = Color3.fromRGB(232, 235, 239)
+	renameBox.Font = Enum.Font.SourceSansSemibold
 	renameBox.TextSize = 16
-	renameBox.TextTruncate = Enum.TextTruncate.AtEnd
-	renameBox.TextXAlignment = Enum.TextXAlignment.Left
-	renameBox.Parent = card
 
 	local serialized = component.serialized or {}
 	local rootNode = serialized.root or {}
 	local stats = serialized.stats or {}
-	local details = Instance.new("TextLabel")
-	details.Name = "Details"
-	details.BackgroundTransparency = 1
-	details.Position = UDim2.new(0, 12, 0, 34)
-	details.Size = UDim2.new(1, -24, 0, 18)
-	details.Font = Enum.Font.SourceSans
-	details.Text = string.format(
-		"%s · %d instance%s · %d properties",
-		tostring(rootNode.className or "GuiObject"),
-		tonumber(stats.instanceCount) or 0,
-		(tonumber(stats.instanceCount) or 0) == 1 and "" or "s",
-		tonumber(stats.propertyCount) or 0
+	local details = makeLabel(
+		card,
+		"Details",
+		string.format(
+			"%s · %d instance%s · %d properties",
+			tostring(rootNode.className or "GuiObject"),
+			tonumber(stats.instanceCount) or 0,
+			(tonumber(stats.instanceCount) or 0) == 1 and "" or "s",
+			tonumber(stats.propertyCount) or 0
+		),
+		UDim2.new(0, 12, 0, 36),
+		UDim2.new(1, -24, 0, 18),
+		13,
+		Color3.fromRGB(150, 155, 162),
+		false
 	)
-	details.TextColor3 = Color3.fromRGB(150, 155, 162)
-	details.TextSize = 13
-	details.TextXAlignment = Enum.TextXAlignment.Left
-	details.Parent = card
+	details.TextTruncate = Enum.TextTruncate.AtEnd
 
-	local insertButton = makeButton(
-		card,
-		"Insert",
-		"Insert",
-		UDim2.new(0, 12, 0, 66),
-		UDim2.fromOffset(68, 28),
-		Color3.fromRGB(50, 87, 124),
-		Color3.fromRGB(230, 238, 247)
-	)
-	local updateButton = makeButton(
-		card,
-		"Update",
-		"Update",
-		UDim2.new(0, 88, 0, 66),
-		UDim2.fromOffset(68, 28),
-		Color3.fromRGB(55, 73, 66),
-		Color3.fromRGB(220, 235, 226)
-	)
-	local deleteButton = makeButton(
-		card,
-		"Delete",
-		"Delete",
-		UDim2.new(1, -70, 0, 66),
-		UDim2.fromOffset(58, 28),
-		Color3.fromRGB(63, 47, 47),
-		Color3.fromRGB(224, 177, 172)
-	)
+	local tagBox = makeTextBox(card, "Tags", "Add tags...", UDim2.new(0, 12, 0, 60), UDim2.new(1, -24, 0, 26))
+	tagBox.Text = table.concat(component.tags or {}, ", ")
+	tagBox.TextSize = 12
+
+	local insertButton = makeButton(card, "Insert", "Insert", UDim2.new(0, 12, 0, 98), UDim2.fromOffset(68, 28), Color3.fromRGB(50, 87, 124), Color3.fromRGB(230, 238, 247))
+	local updateButton = makeButton(card, "Update", "Update", UDim2.new(0, 88, 0, 98), UDim2.fromOffset(68, 28), Color3.fromRGB(55, 73, 66), Color3.fromRGB(220, 235, 226))
+	local deleteButton = makeButton(card, "Delete", "Delete", UDim2.new(1, -70, 0, 98), UDim2.fromOffset(58, 28), Color3.fromRGB(63, 47, 47), Color3.fromRGB(224, 177, 172))
 
 	renameBox.FocusLost:Connect(function()
 		if renameBox.Text == component.name then
@@ -517,6 +511,19 @@ local function makeCard(component, layoutOrder: number)
 			renderLibrary()
 		else
 			renameBox.Text = component.name
+			setStatus(tostring(result), true)
+		end
+	end)
+
+	tagBox.FocusLost:Connect(function()
+		local ok, result = pcall(function()
+			return libraryStore:setTags(component.id, tagBox.Text)
+		end)
+		if ok then
+			tagBox.Text = table.concat(result.tags or {}, ", ")
+			setStatus(string.format("Updated tags for '%s'.", result.name), false)
+			renderLibrary()
+		else
 			setStatus(tostring(result), true)
 		end
 	end)
@@ -542,6 +549,29 @@ local function makeCard(component, layoutOrder: number)
 	end)
 end
 
+local function componentMatches(component, query: string): boolean
+	if query == "" then
+		return true
+	end
+
+	if string.find(string.lower(component.name), query, 1, true) then
+		return true
+	end
+
+	local rootNode = component.serialized and component.serialized.root
+	if rootNode and type(rootNode.className) == "string" and string.find(string.lower(rootNode.className), query, 1, true) then
+		return true
+	end
+
+	for _, tag in component.tags or {} do
+		if string.find(string.lower(tag), query, 1, true) then
+			return true
+		end
+	end
+
+	return false
+end
+
 renderLibrary = function()
 	for _, child in libraryList:GetChildren() do
 		if child ~= listLayout then
@@ -553,7 +583,7 @@ renderLibrary = function()
 	local query = string.lower(trim(searchInput.Text))
 	local visible = {}
 	for _, component in components do
-		if query == "" or string.find(string.lower(component.name), query, 1, true) then
+		if componentMatches(component, query) then
 			table.insert(visible, component)
 		end
 	end
@@ -565,19 +595,17 @@ renderLibrary = function()
 	end
 
 	if #visible == 0 then
-		local empty = Instance.new("TextLabel")
-		empty.Name = "EmptyLibrary"
+		local empty = makeLabel(
+			libraryList,
+			"EmptyLibrary",
+			#components == 0 and "No saved components yet.\nSelect a UI object above to create your first one." or "No components match this search.",
+			UDim2.new(),
+			UDim2.new(1, -2, 0, 54),
+			13,
+			Color3.fromRGB(135, 140, 147),
+			false
+		)
 		empty.LayoutOrder = 1
-		empty.Size = UDim2.new(1, -2, 0, 54)
-		empty.BackgroundTransparency = 1
-		empty.Font = Enum.Font.SourceSans
-		empty.Text = #components == 0
-			and "No saved components yet.\nSelect a UI object above to create your first one."
-			or "No components match this search."
-		empty.TextColor3 = Color3.fromRGB(135, 140, 147)
-		empty.TextSize = 13
-		empty.TextWrapped = true
-		empty.Parent = libraryList
 		return
 	end
 
@@ -595,7 +623,7 @@ local function saveSelection()
 
 	local duplicate = libraryStore:findByName(name)
 	if duplicate then
-		setStatus(string.format("'%s' already exists. Use Update on that saved component or choose another name.", duplicate.name), true)
+		setStatus(string.format("'%s' already exists. Use Update or choose another name.", duplicate.name), true)
 		return
 	end
 
@@ -607,7 +635,7 @@ local function saveSelection()
 
 	local serialized = serializedOrError
 	local okSave, savedOrError = pcall(function()
-		return libraryStore:add(name, serialized)
+		return libraryStore:add(name, serialized, tagsInput.Text)
 	end)
 	if not okSave then
 		setStatus(tostring(savedOrError), true)
@@ -629,7 +657,41 @@ local function saveSelection()
 		warn("[Component Vault]", warningMessage)
 	end
 
+	tagsInput.Text = ""
 	renderLibrary()
+end
+
+local function exportLibrary()
+	local ok, result = pcall(function()
+		return libraryStore:exportBundle()
+	end)
+	if not ok then
+		setStatus("Export failed: " .. tostring(result), true)
+		return
+	end
+
+	transferBox.Text = result
+	transferPanel.Visible = true
+	setStatus(string.format("Exported %d component%s to the Transfer panel.", #libraryStore:list(), #libraryStore:list() == 1 and "" or "s"), false)
+end
+
+local function importLibrary()
+	local ok, result = pcall(function()
+		return libraryStore:importBundle(transferBox.Text)
+	end)
+	if not ok then
+		setStatus("Import failed: " .. tostring(result), true)
+		return
+	end
+
+	renderLibrary()
+	setStatus(string.format(
+		"Imported %d component%s. %d renamed, %d skipped.",
+		result.importedCount,
+		result.importedCount == 1 and "" or "s",
+		result.renamedCount,
+		result.skippedCount
+	), result.skippedCount > 0)
 end
 
 local function syncButtonState()
@@ -640,6 +702,12 @@ toggleButton.Click:Connect(function()
 	widget.Enabled = not widget.Enabled
 end)
 
+transferButton.Activated:Connect(exportLibrary)
+closeTransferButton.Activated:Connect(function()
+	transferPanel.Visible = false
+end)
+exportAllButton.Activated:Connect(exportLibrary)
+importButton.Activated:Connect(importLibrary)
 saveButton.Activated:Connect(saveSelection)
 searchInput:GetPropertyChangedSignal("Text"):Connect(renderLibrary)
 widget:GetPropertyChangedSignal("Enabled"):Connect(syncButtonState)
