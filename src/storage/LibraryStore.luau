@@ -187,6 +187,32 @@ function LibraryStore:add(name: string, serialized: any)
 	return component
 end
 
+function LibraryStore:update(id: string, serialized: any)
+	assert(type(serialized) == "table", "Serialized component data is required")
+
+	for _, component in self._library.components do
+		if component.id == id then
+			local oldSerialized = component.serialized
+			local oldUpdatedAt = component.updatedAt
+			component.serialized = serialized
+			component.updatedAt = os.time()
+
+			local ok, err = pcall(function()
+				self:_persist()
+			end)
+			if not ok then
+				component.serialized = oldSerialized
+				component.updatedAt = oldUpdatedAt
+				error(err)
+			end
+
+			return component
+		end
+	end
+
+	error("Component not found")
+end
+
 function LibraryStore:rename(id: string, newName: string)
 	newName = string.match(newName, "^%s*(.-)%s*$") or ""
 	assert(newName ~= "", "Component name cannot be empty")
