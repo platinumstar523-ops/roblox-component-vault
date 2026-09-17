@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+No unreleased changes yet.
+
+## [0.1.0] - 2026-09-17
+
 ### Added
 
 - Initial open-source project scaffold.
@@ -35,7 +39,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Quick tag filtering alongside text search.
 - Responsive card action layout for narrow Studio docks.
 - GitHub bug-report, feature-request, and pull-request templates.
-- Release checklist, draft v0.1.0 notes, and pre-release version marker.
+- Release checklist, v0.1.0 release notes, and release version marker.
 
 ### Changed
 
