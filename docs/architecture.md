@@ -9,11 +9,11 @@ This document records the initial architecture direction for Component Vault. It
 - Separate serialization, storage, and plugin interface concerns.
 - Make future import/export and component versioning possible without redesigning the core format.
 
-## Planned Source Layout
+## Source Layout
 
-### `src/Main.plugin.lua`
+### `src/init.server.luau`
 
-Plugin entry point. Responsible for bootstrapping the toolbar, dock widget, and top-level services.
+Rojo plugin entry point. Responsible for bootstrapping the toolbar, dock widget, and top-level services. As features grow, implementation details should move into focused modules rather than accumulating in the entry point.
 
 ### `src/components/`
 
@@ -53,4 +53,4 @@ Reconstruct hierarchy when inserted
 
 The first release should prioritize reliable preservation of common Roblox UI objects and properties over supporting every possible Instance type immediately. Unsupported behavior should fail clearly rather than silently producing broken components.
 
-Architectural decisions will be updated here as implementation begins.
+Architectural decisions will be updated here as implementation continues.
