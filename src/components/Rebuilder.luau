@@ -1,5 +1,13 @@
 local Rebuilder = {}
 
+local SUPPORTED_SCHEMA_VERSION = 1
+
+local PROPERTY_PRIORITY = {
+	Name = -30,
+	Font = -20,
+	FontFace = -10,
+}
+
 local function decodeValue(value: any): any
 	if type(value) ~= "table" or value.__type == nil then
 		return value
@@ -45,12 +53,31 @@ local function decodeValue(value: any): any
 	error(string.format("Unsupported encoded value type '%s'", tostring(valueType)))
 end
 
+local function sortedPropertyNames(properties: any): { string }
+	local names = {}
+	for propertyName in properties do
+		table.insert(names, propertyName)
+	end
+
+	table.sort(names, function(a, b)
+		local aPriority = PROPERTY_PRIORITY[a] or 0
+		local bPriority = PROPERTY_PRIORITY[b] or 0
+		if aPriority == bPriority then
+			return a < b
+		end
+		return aPriority < bPriority
+	end)
+
+	return names
+end
+
 local function applyProperties(instance: Instance, properties: any, warnings: { string })
 	if type(properties) ~= "table" then
 		return
 	end
 
-	for propertyName, encodedValue in properties do
+	for _, propertyName in sortedPropertyNames(properties) do
+		local encodedValue = properties[propertyName]
 		local okDecode, decodedOrError = pcall(function()
 			return decodeValue(encodedValue)
 		end)
@@ -133,6 +160,10 @@ function Rebuilder.rebuild(serialized: any, parent: Instance): (Instance, { stri
 	assert(type(serialized) == "table", "Serialized component data is required")
 	assert(type(serialized.root) == "table", "Serialized component is missing its root node")
 	assert(parent ~= nil, "A parent is required for insertion")
+	assert(
+		serialized.schemaVersion == nil or serialized.schemaVersion <= SUPPORTED_SCHEMA_VERSION,
+		string.format("Unsupported component schema version %s", tostring(serialized.schemaVersion))
+	)
 
 	local warnings = {}
 	local stats = { instanceCount = 0 }
