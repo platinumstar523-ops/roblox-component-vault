@@ -1,0 +1,6 @@
+-- Component Vault
+-- Roblox Studio plugin entry point.
+--
+-- The first functional implementation will bootstrap the plugin toolbar and
+-- dockable Component Vault window. Keeping the entry point small will let the
+-- feature logic live in focused modules under src/.
