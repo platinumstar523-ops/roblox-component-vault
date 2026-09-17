@@ -2,16 +2,20 @@
 
 Component Vault is an open-source Roblox Studio plugin for saving, organizing, and reusing UI components across experiences.
 
-**[Download ComponentVault.rbxm (v0.1.0)](https://github.com/platinumstar523-ops/roblox-component-vault/releases/download/v0.1.0/ComponentVault.rbxm)** · [View release notes](https://github.com/platinumstar523-ops/roblox-component-vault/releases/tag/v0.1.0)
+> **Latest release:** [v0.1.0](https://github.com/platinumstar523-ops/roblox-component-vault/releases/tag/v0.1.0)
 
-> **Latest release:** v0.1.0
+## Download
 
-## Quick install
+[**Download Component Vault v0.1.0**](https://github.com/platinumstar523-ops/roblox-component-vault/releases/download/v0.1.0/ComponentVault.rbxm)
 
-1. Download [`ComponentVault.rbxm`](https://github.com/platinumstar523-ops/roblox-component-vault/releases/download/v0.1.0/ComponentVault.rbxm).
-2. Put it in Roblox Studio's local **Plugins Folder**.
-3. Restart Studio.
-4. Open **Component Vault** from the Studio toolbar.
+![Component Vault in Roblox Studio](docs/images/component-vault-studio.png)
+
+Install it by:
+
+1. Downloading `ComponentVault.rbxm` from the link above.
+2. Opening Roblox Studio's local **Plugins Folder**.
+3. Copying `ComponentVault.rbxm` into that folder.
+4. Restarting Studio and opening **Component Vault** from the toolbar.
 
 ## What works today
 
@@ -34,6 +38,12 @@ Component Vault does not require a runtime framework. Inserted components are or
 4. Click **Insert** to reconstruct it in the selected UI container or a fallback `ScreenGui`.
 
 Saved components remain available across Studio places on the same local Studio installation.
+
+## Install v0.1.0
+
+Download `ComponentVault.rbxm` from the [v0.1.0 release](https://github.com/platinumstar523-ops/roblox-component-vault/releases/tag/v0.1.0), place it in Roblox Studio's local **Plugins Folder**, and restart Studio.
+
+The **Component Vault** toolbar button should then open the dockable plugin window.
 
 ## Build from source
 
