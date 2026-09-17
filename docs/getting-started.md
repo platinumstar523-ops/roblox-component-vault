@@ -1,61 +1,74 @@
 # Getting Started
 
-Component Vault is in early development. The current development loop uses Roblox Studio, Git, VS Code, and Rojo.
+Component Vault is currently a pre-release Roblox Studio plugin. The core save, persist, preview, transfer, and insert workflow is working, but there is not a tagged public release yet.
 
 ## Requirements
 
-For development you will need:
+For development or source installation you need:
 
 - Roblox Studio
 - Git
-- VS Code or another editor with Luau support
 - Rojo CLI
-- The Rojo VS Code extension is recommended
+- VS Code or another editor with Luau support is recommended
 
-## Clone the Repository
+## Clone and build
 
 ```bash
 git clone https://github.com/platinumstar523-ops/roblox-component-vault.git
 cd roblox-component-vault
-```
-
-## Rojo Project
-
-The repository's `default.project.json` maps the `src/` directory into a Roblox Studio plugin. The plugin entry point is `src/init.server.luau`.
-
-Rojo's plugin workflow can build directly to your local Roblox Studio plugins folder:
-
-```bash
 rojo build -p "ComponentVault.rbxm"
 ```
 
-During development, use watch mode so the local plugin is rebuilt when source files change:
+If Rojo is installed with Aftman on Windows and is not available on `PATH`:
 
-```bash
-rojo build -p "ComponentVault.rbxm" --watch
+```powershell
+& "$HOME\.aftman\bin\rojo.exe" build -p "ComponentVault.rbxm"
 ```
 
-After the plugin is available to Studio, the **Component Vault** toolbar button should open a dockable Component Vault window.
+The build creates `ComponentVault.rbxm` in the repository root.
 
-## Current Development Status
+## Install as a local Studio plugin
 
-The first plugin shell is implemented. It creates:
+1. In Roblox Studio, open the local **Plugins Folder** from the Plugins tab.
+2. Copy the built `ComponentVault.rbxm` into that folder.
+3. Fully restart Roblox Studio after replacing the file.
+4. Use the **Component Vault** toolbar button to open the dockable window.
 
-- A **Component Vault** Studio toolbar section.
-- A toolbar button for opening and closing the plugin.
-- A dockable Component Vault window.
-- An honest empty state for the not-yet-implemented component library.
+For active source development, rebuild after pulling or changing source files and restart/reload Studio as needed.
 
-The next milestone is detecting the selected `GuiObject` and enabling the first **Save Component** flow.
+## First-use workflow
 
-## v0.1 Development Target
+1. Create or open a place with a `ScreenGui` under `StarterGui`.
+2. Select a supported `GuiObject`, such as a `Frame` or `TextButton`.
+3. Open Component Vault.
+4. Enter a component name and optional comma-separated tags.
+5. Click **Save Component**.
+6. Confirm the component appears in the library with a preview.
+7. Open another place and confirm the component is still present.
+8. Click **Insert** to reconstruct it into the current UI target.
 
-The initial end-to-end workflow is:
+The plugin chooses an insertion target from the current Studio selection when possible. If no usable UI target is selected, it falls back to a `ScreenGui` under `StarterGui`.
 
-1. Select a `GuiObject` in Roblox Studio.
-2. Save it as a named component.
-3. See it in the Component Vault library.
-4. Open another place.
-5. Insert a reconstructed copy of that component.
+## Library controls
 
-See [architecture.md](architecture.md) for the current technical direction.
+Each saved component can be:
+
+- Inserted
+- Updated from the current Studio selection
+- Renamed
+- Retagged
+- Deleted
+
+The library also supports text search, tag filtering, and sorting by recently updated, name, or root class.
+
+## Transfer between installations
+
+Click **Transfer** to export the local library as text. Copy that export text somewhere safe. On another Studio installation, paste it into the Transfer panel and click **Import**.
+
+Imports do not overwrite existing components. Duplicate names receive numeric suffixes, and imported components receive new IDs.
+
+## Testing changes
+
+Before considering a change complete, run the manual smoke test in [testing.md](testing.md). Visible UI changes should also be checked at narrow dock widths.
+
+See [architecture.md](architecture.md) for the implementation structure and [release-checklist.md](release-checklist.md) for the first-release gate.

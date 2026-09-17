@@ -1,0 +1,58 @@
+name: Bug report
+description: Report a reproducible Component Vault problem
+title: "[Bug]: "
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. Please include enough detail to reproduce it in Roblox Studio.
+  - type: input
+    id: version
+    attributes:
+      label: Component Vault version / commit
+      description: Release version, commit SHA, or roughly when you pulled main.
+      placeholder: v0.1.0 or 38b7914
+    validations:
+      required: true
+  - type: input
+    id: studio
+    attributes:
+      label: Roblox Studio version / platform
+      placeholder: Windows 11, current Studio release
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened?
+      description: Describe the actual behavior and any visible error.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction steps
+      placeholder: |
+        1. Select ...
+        2. Save ...
+        3. Open ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: Studio Output / warnings
+      description: Paste relevant Component Vault warnings or errors. Remove unrelated private information first.
+      render: text
+  - type: textarea
+    id: extra
+    attributes:
+      label: Extra context
+      description: Screenshots, hierarchy details, affected UI classes, or anything else that helps.

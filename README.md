@@ -1,44 +1,81 @@
 # Component Vault
 
-Component Vault is an open-source Roblox Studio plugin for creating, organizing, and reusing UI components across experiences.
+Component Vault is an open-source Roblox Studio plugin for saving, organizing, and reusing UI components across experiences.
 
-> **Status:** Early development. Component Vault is not yet ready for production use.
+> **Status: pre-release.** The core workflow works, but there is not a tagged public release yet. Expect format and UI changes before v0.1.0.
 
-## Why Component Vault?
+## What works today
 
-Roblox developers often rebuild or manually copy the same buttons, cards, menus, HUD elements, and full interfaces between projects. Component Vault aims to make those interfaces reusable components that can be saved once, organized into a library, and inserted into other experiences.
+- Save a selected `GuiObject` and its supported UI descendants as a named component.
+- Persist the local component library across Roblox Studio places.
+- Insert saved components back into Studio as normal Roblox Instances.
+- Update, rename, tag, search, sort, filter, and delete saved components.
+- Preview saved components directly in the library.
+- Use Studio undo after insertion.
+- Export the full library as text and import it on another machine or account.
+- Safely rename duplicate imports instead of silently overwriting existing components.
 
-## v0.1 Goal
+Component Vault does not require a runtime framework. Inserted components are ordinary Roblox UI Instances.
 
-The first milestone is intentionally small:
+## Typical workflow
 
-- Save a selected Roblox UI object as a reusable component.
-- Give saved components names.
-- Browse saved components in a dockable Studio window.
-- Insert a saved component into another place.
-- Delete components from the local library.
-- Preserve descendants and important UI properties.
+1. Select a supported UI object in Explorer or the viewport.
+2. Give it a name and optional tags, then click **Save Component**.
+3. Open another place and find the component in Component Vault.
+4. Click **Insert** to reconstruct it in the selected UI container or a fallback `ScreenGui`.
 
-More advanced ideas such as themes, design tokens, component versioning, team libraries, and shared libraries are planned for later releases.
+Saved components remain available across Studio places on the same local Studio installation.
 
-## Current Progress
+## Build and install from source
 
-The repository now includes a Rojo plugin project and the first Studio shell: a **Component Vault** toolbar button that toggles a dockable window. Component saving is the next implementation milestone.
+Requirements:
 
-## Repository Structure
+- Roblox Studio
+- Git
+- [Rojo](https://rojo.space/)
+
+```bash
+git clone https://github.com/platinumstar523-ops/roblox-component-vault.git
+cd roblox-component-vault
+rojo build -p "ComponentVault.rbxm"
+```
+
+Then open Roblox Studio's local **Plugins Folder**, copy `ComponentVault.rbxm` into it, and restart Studio. The **Component Vault** toolbar button should open the dockable plugin window.
+
+If Rojo is installed through Aftman on Windows and is not on `PATH`, the equivalent command is:
+
+```powershell
+& "$HOME\.aftman\bin\rojo.exe" build -p "ComponentVault.rbxm"
+```
+
+See [docs/getting-started.md](docs/getting-started.md) for the full development and testing workflow.
+
+## Current limitations
+
+Component Vault is intentionally conservative before its first release:
+
+- The saved library is local to the Studio installation; there is no cloud or team sync yet.
+- Serialization covers a curated set of common Roblox UI classes and properties, not every possible Instance or property.
+- Unsupported descendants/properties are reported as warnings rather than being guessed.
+- Thumbnail previews are best-effort and may not perfectly reproduce every supported component.
+- Import/export is text-based JSON rather than a hosted sharing service.
+- Component version history, design tokens/themes, and team/shared libraries are not implemented yet.
+
+## Repository structure
 
 ```text
 roblox-component-vault/
-├── default.project.json
 ├── src/
 │   ├── init.server.luau
 │   ├── components/
+│   │   ├── Serializer.luau
+│   │   └── Rebuilder.luau
 │   ├── storage/
-│   ├── ui/
-│   └── utils/
+│   │   └── LibraryStore.luau
+│   └── ui/
+│       ├── MainWidget.luau
+│       └── PreviewRenderer.luau
 ├── docs/
-│   ├── architecture.md
-│   └── getting-started.md
 ├── examples/
 ├── CHANGELOG.md
 ├── CONTRIBUTING.md
@@ -46,13 +83,18 @@ roblox-component-vault/
 └── README.md
 ```
 
-## Development
+## Documentation
 
-Component Vault uses [Rojo](https://rojo.space/) for Roblox Studio plugin development. See [docs/getting-started.md](docs/getting-started.md) for the current setup and testing workflow.
+- [Getting started](docs/getting-started.md)
+- [Architecture](docs/architecture.md)
+- [Manual testing](docs/testing.md)
+- [Serializer format](docs/serializer-format.md)
+- [Library portability](docs/library-portability.md)
+- [Release checklist](docs/release-checklist.md)
 
 ## Contributing
 
-The project is in its earliest stage, but issues, suggestions, bug reports, and contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for the current contribution guidelines.
+Bug reports, focused feature ideas, documentation improvements, and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
