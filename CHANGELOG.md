@@ -23,7 +23,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Explicit JSON encoding and immediate read-back verification for local library persistence.
 - Schema v1 component reconstruction for saved UI hierarchies, properties, attributes, and encoded Roblox datatypes.
 - Insert actions for saved components with automatic target selection and fallback `ScreenGui` creation.
+- Update actions that replace a saved component from the current Studio selection.
+- Component-library search filtering.
+- Undo waypoints around component insertion.
+- Expanded support for modern font settings, CanvasGroup, ViewportFrame, VideoFrame, additional layouts, and flex items.
 
 ### Fixed
 
 - Hardened cross-place persistence after local-plugin testing showed a saved library could reload as empty.
+- Deterministic property restore ordering for settings such as legacy `Font` and modern `FontFace`.
+- Explicit duplicate-name handling and future-schema rejection.
