@@ -32,11 +32,12 @@ Resize/dock Component Vault to a narrow width and confirm:
 
 1. Save a root component whose `Position` includes pixel offsets in a large Studio viewport.
 2. Change Studio to a meaningfully different viewport size and insert the component into an equivalent parent.
-3. Confirm the root component stays at the same relative screen position.
+3. Confirm the root component stays at the same relative screen position and occupies roughly the same percentage of the destination parent.
 4. Repeat with a non-zero `AnchorPoint`.
-5. Confirm descendants keep their original internal positions and sizes.
-6. Repeat with a source or destination parent containing `UIListLayout` or `UIGridLayout`; layout-controlled placement should remain controlled by the layout.
-7. Insert a component saved before proportional-placement metadata existed and confirm it still inserts using its original serialized `Position`.
+5. Confirm a root using `AutomaticSize` keeps automatic sizing instead of being forced to a proportional `Size`.
+6. Confirm descendants keep their original internal positions and sizes.
+7. Repeat with a source or destination parent containing `UIListLayout` or `UIGridLayout`; layout-controlled placement should remain controlled by the layout.
+8. Insert a component saved before proportional-placement metadata existed and confirm it still inserts using its original serialized `Position` and `Size`.
 
 ## Update notification regression check
 
