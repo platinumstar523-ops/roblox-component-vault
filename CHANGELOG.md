@@ -8,12 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
-- Proportional root-position and root-size metadata so newly saved or updated components can keep the same relative placement and footprint when inserted into a different viewport or parent size.
+- Responsive viewport metadata so newly saved or updated components can preserve relative placement and scale offset-based UI throughout the saved hierarchy when inserted into a different viewport or parent size.
 - In-plugin update checks against the official GitHub latest-release endpoint, with cached checks and an update-available panel containing the official release link.
 
 ### Changed
 
-- Component insertion now restores a saved root component's normalized anchor position and size when possible while preserving its existing `AnchorPoint`.
+- Component insertion now scales offset-based `UDim`/`UDim2` properties, text sizes, common pixel thicknesses, and relevant pixel vectors throughout the saved hierarchy while preserving scale-based values and `AnchorPoint`.
 - Proportional placement is skipped for layout-controlled parents and older components without placement metadata, preserving the previous insertion behavior.
 - The Component Vault window now shows its current version and update status without blocking normal plugin use when network or HTTP permission is unavailable.
 
