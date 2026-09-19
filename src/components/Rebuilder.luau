@@ -162,18 +162,29 @@ local function applyRootPlacement(root: Instance, parent: Instance, serialized: 
 		return
 	end
 
+	local guiRoot = root :: GuiObject
 	local x = tonumber(placement.x)
 	local y = tonumber(placement.y)
 	if x == nil or y == nil then
 		table.insert(warnings, "Could not restore proportional root position: invalid placement metadata")
-		return
+	else
+		local okPosition, positionError = pcall(function()
+			guiRoot.Position = UDim2.fromScale(x, y)
+		end)
+		if not okPosition then
+			table.insert(warnings, string.format("Could not restore proportional root position: %s", tostring(positionError)))
+		end
 	end
 
-	local ok, setError = pcall(function()
-		(root :: GuiObject).Position = UDim2.fromScale(x, y)
-	end)
-	if not ok then
-		table.insert(warnings, string.format("Could not restore proportional root position: %s", tostring(setError)))
+	local width = tonumber(placement.width)
+	local height = tonumber(placement.height)
+	if width ~= nil and height ~= nil and guiRoot.AutomaticSize == Enum.AutomaticSize.None then
+		local okSize, sizeError = pcall(function()
+			guiRoot.Size = UDim2.fromScale(width, height)
+		end)
+		if not okSize then
+			table.insert(warnings, string.format("Could not restore proportional root size: %s", tostring(sizeError)))
+		end
 	end
 end
 
