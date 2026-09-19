@@ -97,7 +97,55 @@ local function sortedPropertyNames(properties: any): { string }
 	return names
 end
 
-local function applyProperties(instance: Instance, properties: any, warnings: { string })
+local PIXEL_NUMBER_PROPERTIES = {
+	TextSize = true,
+	MinTextSize = true,
+	MaxTextSize = true,
+	Thickness = true,
+	ScrollBarThickness = true,
+	BorderSizePixel = true,
+}
+
+local function scaleDecodedProperty(propertyName: string, value: any, scaleContext: any)
+	if not scaleContext then
+		return value
+	end
+
+	local valueType = typeof(value)
+	if valueType == "UDim2" then
+		return UDim2.new(
+			value.X.Scale,
+			value.X.Offset * scaleContext.x,
+			value.Y.Scale,
+			value.Y.Offset * scaleContext.y
+		)
+	elseif valueType == "UDim" then
+		local factor = scaleContext.uniform
+		if propertyName == "PaddingLeft" or propertyName == "PaddingRight" then
+			factor = scaleContext.x
+		elseif propertyName == "PaddingTop" or propertyName == "PaddingBottom" then
+			factor = scaleContext.y
+		end
+		return UDim.new(value.Scale, value.Offset * factor)
+	elseif valueType == "Vector2" then
+		if propertyName == "CanvasPosition" or propertyName == "MaxSize" or propertyName == "MinSize" then
+			return Vector2.new(value.X * scaleContext.x, value.Y * scaleContext.y)
+		end
+	elseif valueType == "number" and PIXEL_NUMBER_PROPERTIES[propertyName] then
+		if value == 0 then
+			return 0
+		end
+		local scaled = value * scaleContext.uniform
+		if propertyName == "TextSize" or propertyName == "MinTextSize" or propertyName == "MaxTextSize" then
+			return math.max(1, math.round(scaled))
+		end
+		return scaled
+	end
+
+	return value
+end
+
+local function applyProperties(instance: Instance, properties: any, warnings: { string }, scaleContext: any?)
 	if type(properties) ~= "table" then
 		return
 	end
@@ -113,8 +161,9 @@ local function applyProperties(instance: Instance, properties: any, warnings: { 
 			continue
 		end
 
+		local decodedValue = scaleDecodedProperty(propertyName, decodedOrError, scaleContext)
 		local okSet, setError = pcall(function()
-			(instance :: any)[propertyName] = decodedOrError
+			(instance :: any)[propertyName] = decodedValue
 		end)
 
 		if not okSet then
@@ -150,6 +199,38 @@ end
 
 local function hasLayoutController(parent: Instance): boolean
 	return parent:FindFirstChildWhichIsA("UIGridStyleLayout") ~= nil
+end
+
+local function buildScaleContext(serialized: any, parent: Instance)
+	if hasLayoutController(parent) then
+		return nil
+	end
+
+	local placement = serialized.placement
+	if type(placement) ~= "table" or placement.mode ~= "ViewportRelative" then
+		return nil
+	end
+
+	local sourceWidth = tonumber(placement.sourceWidth)
+	local sourceHeight = tonumber(placement.sourceHeight)
+	if not sourceWidth or not sourceHeight or sourceWidth <= 0 or sourceHeight <= 0 then
+		return nil
+	end
+
+	local ok, targetSize = pcall(function()
+		return (parent :: any).AbsoluteSize
+	end)
+	if not ok or typeof(targetSize) ~= "Vector2" or targetSize.X <= 0 or targetSize.Y <= 0 then
+		return nil
+	end
+
+	local xScale = targetSize.X / sourceWidth
+	local yScale = targetSize.Y / sourceHeight
+	return {
+		x = xScale,
+		y = yScale,
+		uniform = math.min(xScale, yScale),
+	}
 end
 
 local function applyRootPlacement(root: Instance, parent: Instance, serialized: any, warnings: { string })
@@ -188,14 +269,14 @@ local function applyRootPlacement(root: Instance, parent: Instance, serialized: 
 	end
 end
 
-local function rebuildNode(node: any, parent: Instance?, warnings: { string }, stats: any): Instance
+local function rebuildNode(node: any, parent: Instance?, warnings: { string }, stats: any, scaleContext: any?): Instance
 	assert(type(node) == "table", "Invalid serialized node")
 	assert(type(node.className) == "string", "Serialized node is missing className")
 	assert(SUPPORTED_CLASSES[node.className] == true, string.format("Unsupported component class '%s'", tostring(node.className)))
 
 	local instance = Instance.new(node.className)
 	instance.Name = type(node.name) == "string" and node.name or node.className
-	applyProperties(instance, node.properties, warnings)
+	applyProperties(instance, node.properties, warnings, scaleContext)
 	applyAttributes(instance, node.attributes, warnings)
 
 	if parent then
@@ -207,7 +288,7 @@ local function rebuildNode(node: any, parent: Instance?, warnings: { string }, s
 	if type(node.children) == "table" then
 		for _, childNode in node.children do
 			local okChild, childError = pcall(function()
-				rebuildNode(childNode, instance, warnings, stats)
+				rebuildNode(childNode, instance, warnings, stats, scaleContext)
 			end)
 			if not okChild then
 				table.insert(warnings, string.format("Could not rebuild child of %s: %s", instance.Name, tostring(childError)))
@@ -229,9 +310,13 @@ function Rebuilder.rebuild(serialized: any, parent: Instance): (Instance, { stri
 
 	local warnings = {}
 	local stats = { instanceCount = 0 }
-	local root = rebuildNode(serialized.root, nil, warnings, stats)
+	local scaleContext = buildScaleContext(serialized, parent)
+	local root = rebuildNode(serialized.root, nil, warnings, stats, scaleContext)
 	root.Parent = parent
-	applyRootPlacement(root, parent, serialized, warnings)
+
+	if not scaleContext then
+		applyRootPlacement(root, parent, serialized, warnings)
+	end
 
 	return root, warnings, stats
 end
