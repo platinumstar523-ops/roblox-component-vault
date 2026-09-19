@@ -38,6 +38,16 @@ Resize/dock Component Vault to a narrow width and confirm:
 6. Repeat with a source or destination parent containing `UIListLayout` or `UIGridLayout`; layout-controlled placement should remain controlled by the layout.
 7. Insert a component saved before proportional-placement metadata existed and confirm it still inserts using its original serialized `Position`.
 
+## Update notification regression check
+
+1. Start the plugin while the latest stable GitHub release matches the plugin's current version and confirm the header reports **Up to date**.
+2. Click the version/update status and confirm a manual re-check does not interrupt normal plugin use.
+3. Deny or disable HTTP access and confirm Component Vault still opens and all core library actions remain usable.
+4. When testing against a newer release tag, confirm the header changes to an update-available state.
+5. Click the update-available state and confirm the panel shows the official `github.com/platinumstar523-ops/roblox-component-vault/releases/tag/...` URL.
+6. Restart Studio inside the six-hour cache interval and confirm the updater can reuse cached release metadata.
+7. Confirm update checking never modifies or deletes the saved component library.
+
 ## Warning behavior
 
 Serializer or preview limitations should produce explicit warnings rather than crashing the plugin or silently corrupting the saved component.
