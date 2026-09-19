@@ -6,6 +6,7 @@ local Serializer = require(script.Parent.Parent.components.Serializer)
 local Rebuilder = require(script.Parent.Parent.components.Rebuilder)
 local LibraryStore = require(script.Parent.Parent.storage.LibraryStore)
 local PreviewRenderer = require(script.Parent.PreviewRenderer)
+local UpdateChecker = require(script.Parent.Parent.updates.UpdateChecker)
 
 local MainWidget = {}
 
@@ -142,6 +143,8 @@ function MainWidget.start(pluginHandle: Plugin)
 	local activeTag: string? = nil
 	local sortMode = "Updated"
 	local renderLibrary
+	local latestUpdateInfo = nil
+	local checkingForUpdate = false
 
 	local toolbar = pluginHandle:CreateToolbar(TOOLBAR_NAME)
 	local toggleButton = toolbar:CreateButton("ComponentVault.Toggle", "Open Component Vault", "", "Component Vault")
@@ -157,7 +160,7 @@ function MainWidget.start(pluginHandle: Plugin)
 		520
 	)
 	local widget = pluginHandle:CreateDockWidgetPluginGuiAsync(WIDGET_ID, widgetInfo)
-	widget.Title = "Component Vault"
+	widget.Title = string.format("Component Vault v%s", UpdateChecker.CURRENT_VERSION)
 
 	local root = Instance.new("Frame")
 	root.Name = "Root"
@@ -170,7 +173,22 @@ function MainWidget.start(pluginHandle: Plugin)
 	header.TextTruncate = Enum.TextTruncate.AtEnd
 	local transferButton = makeButton(root, "Transfer", "Transfer", UDim2.new(1, -92, 0, 18), UDim2.fromOffset(74, 26), Color3.fromRGB(52, 58, 66), Color3.fromRGB(224, 228, 233))
 
-	makeLabel(root, "Subtitle", "Save reusable Roblox UI components and access them from other projects.", UDim2.new(0, 18, 0, 50), UDim2.new(1, -36, 0, 40), 15, Color3.fromRGB(175, 179, 185), false)
+	makeLabel(root, "Subtitle", "Save reusable Roblox UI components and access them from other projects.", UDim2.new(0, 18, 0, 50), UDim2.new(1, -154, 0, 40), 15, Color3.fromRGB(175, 179, 185), false)
+
+	local updateStatusButton = Instance.new("TextButton")
+	updateStatusButton.Name = "UpdateStatus"
+	updateStatusButton.Position = UDim2.new(1, -132, 0, 50)
+	updateStatusButton.Size = UDim2.fromOffset(114, 36)
+	updateStatusButton.BackgroundColor3 = Color3.fromRGB(43, 48, 54)
+	updateStatusButton.BorderSizePixel = 0
+	updateStatusButton.AutoButtonColor = false
+	updateStatusButton.Font = Enum.Font.SourceSansSemibold
+	updateStatusButton.Text = string.format("v%s\nChecking updates...", UpdateChecker.CURRENT_VERSION)
+	updateStatusButton.TextColor3 = Color3.fromRGB(175, 181, 188)
+	updateStatusButton.TextSize = 11
+	updateStatusButton.TextWrapped = true
+	updateStatusButton.Parent = root
+	addCorner(updateStatusButton, 5)
 
 	local divider = Instance.new("Frame")
 	divider.Name = "Divider"
@@ -286,9 +304,98 @@ function MainWidget.start(pluginHandle: Plugin)
 	local importButton = makeButton(transferPanel, "Import", "Import", UDim2.new(0, 118, 1, -48), UDim2.fromOffset(84, 30), Color3.fromRGB(55, 82, 66), Color3.fromRGB(224, 238, 228))
 	importButton.ZIndex = 21
 
+	local updatePanel = Instance.new("Frame")
+	updatePanel.Name = "UpdatePanel"
+	updatePanel.Position = UDim2.new(0, 12, 0, 118)
+	updatePanel.Size = UDim2.new(1, -24, 0, 190)
+	updatePanel.BackgroundColor3 = Color3.fromRGB(25, 27, 30)
+	updatePanel.BorderSizePixel = 0
+	updatePanel.Visible = false
+	updatePanel.ZIndex = 30
+	updatePanel.Parent = root
+	addCorner(updatePanel, 8)
+
+	local updatePanelStroke = Instance.new("UIStroke")
+	updatePanelStroke.Color = Color3.fromRGB(68, 72, 78)
+	updatePanelStroke.Thickness = 1
+	updatePanelStroke.Parent = updatePanel
+
+	local updatePanelTitle = makeLabel(updatePanel, "Title", "Component Vault Update", UDim2.new(0, 16, 0, 14), UDim2.new(1, -100, 0, 28), 20, Color3.fromRGB(242, 244, 247), true)
+	updatePanelTitle.ZIndex = 31
+	local closeUpdateButton = makeButton(updatePanel, "Close", "Close", UDim2.new(1, -70, 0, 14), UDim2.fromOffset(54, 26), Color3.fromRGB(57, 60, 65), Color3.fromRGB(225, 228, 232))
+	closeUpdateButton.ZIndex = 31
+
+	local updateMessage = makeLabel(updatePanel, "Message", "", UDim2.new(0, 16, 0, 54), UDim2.new(1, -32, 0, 48), 13, Color3.fromRGB(184, 190, 198), false)
+	updateMessage.ZIndex = 31
+
+	local updateLinkBox = makeTextBox(updatePanel, "ReleaseLink", "Official GitHub release link", UDim2.new(0, 16, 0, 108), UDim2.new(1, -32, 0, 34))
+	updateLinkBox.Font = Enum.Font.Code
+	updateLinkBox.TextSize = 11
+	updateLinkBox.ZIndex = 31
+
+	local updateHelp = makeLabel(updatePanel, "Help", "Copy this official GitHub link, download the new ComponentVault.rbxm, replace the old plugin file, and restart Studio. Your saved component library is kept.", UDim2.new(0, 16, 0, 150), UDim2.new(1, -32, 0, 32), 11, Color3.fromRGB(142, 148, 156), false)
+	updateHelp.ZIndex = 31
+
 	local function setStatus(message: string, isError: boolean?)
 		statusLabel.Text = message
 		statusLabel.TextColor3 = isError and Color3.fromRGB(225, 135, 125) or Color3.fromRGB(145, 150, 158)
+	end
+
+	local function applyUpdateResult(info)
+		latestUpdateInfo = info
+		if info.ok and info.updateAvailable then
+			updateStatusButton.BackgroundColor3 = Color3.fromRGB(47, 78, 110)
+			updateStatusButton.TextColor3 = Color3.fromRGB(224, 238, 250)
+			updateStatusButton.Text = string.format("v%s available\nView update", tostring(info.latestVersion))
+		elseif info.ok and info.source ~= "stale-cache" then
+			updateStatusButton.BackgroundColor3 = Color3.fromRGB(43, 48, 54)
+			updateStatusButton.TextColor3 = Color3.fromRGB(175, 181, 188)
+			updateStatusButton.Text = string.format("v%s\nUp to date", UpdateChecker.CURRENT_VERSION)
+		else
+			updateStatusButton.BackgroundColor3 = Color3.fromRGB(61, 54, 42)
+			updateStatusButton.TextColor3 = Color3.fromRGB(215, 190, 139)
+			updateStatusButton.Text = string.format("v%s\nCheck unavailable", UpdateChecker.CURRENT_VERSION)
+		end
+	end
+
+	local function runUpdateCheck(force: boolean?)
+		if checkingForUpdate then
+			return
+		end
+
+		checkingForUpdate = true
+		updateStatusButton.BackgroundColor3 = Color3.fromRGB(43, 48, 54)
+		updateStatusButton.TextColor3 = Color3.fromRGB(175, 181, 188)
+		updateStatusButton.Text = string.format("v%s\nChecking updates...", UpdateChecker.CURRENT_VERSION)
+
+		task.spawn(function()
+			local ok, resultOrError = pcall(function()
+				return UpdateChecker.check(pluginHandle, force)
+			end)
+			checkingForUpdate = false
+
+			if ok then
+				applyUpdateResult(resultOrError)
+			else
+				applyUpdateResult({
+					ok = false,
+					currentVersion = UpdateChecker.CURRENT_VERSION,
+					error = tostring(resultOrError),
+					source = "runtime",
+				})
+			end
+		end)
+	end
+
+	local function showUpdatePanel(info)
+		if not info or not info.updateAvailable or type(info.releaseUrl) ~= "string" then
+			return
+		end
+
+		updatePanelTitle.Text = string.format("Component Vault v%s", tostring(info.latestVersion))
+		updateMessage.Text = string.format("A newer Component Vault release is available. You are currently on v%s.", UpdateChecker.CURRENT_VERSION)
+		updateLinkBox.Text = info.releaseUrl
+		updatePanel.Visible = true
 	end
 
 	local function findSelectedGuiObject(): GuiObject?
@@ -764,6 +871,16 @@ function MainWidget.start(pluginHandle: Plugin)
 	closeTransferButton.Activated:Connect(function()
 		transferPanel.Visible = false
 	end)
+	closeUpdateButton.Activated:Connect(function()
+		updatePanel.Visible = false
+	end)
+	updateStatusButton.Activated:Connect(function()
+		if latestUpdateInfo and latestUpdateInfo.ok and latestUpdateInfo.updateAvailable then
+			showUpdatePanel(latestUpdateInfo)
+		else
+			runUpdateCheck(true)
+		end
+	end)
 	exportAllButton.Activated:Connect(exportLibrary)
 	importButton.Activated:Connect(importLibrary)
 	saveButton.Activated:Connect(saveSelection)
@@ -776,6 +893,7 @@ function MainWidget.start(pluginHandle: Plugin)
 	renderLibrary()
 	refreshSelection()
 	syncButtonState()
+	runUpdateCheck(false)
 
 	return widget
 end
