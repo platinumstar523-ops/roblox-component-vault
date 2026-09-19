@@ -145,6 +145,7 @@ function MainWidget.start(pluginHandle: Plugin)
 	local renderLibrary
 	local latestUpdateInfo = nil
 	local checkingForUpdate = false
+	local hasStartedUpdateCheck = false
 
 	local toolbar = pluginHandle:CreateToolbar(TOOLBAR_NAME)
 	local toggleButton = toolbar:CreateButton("ComponentVault.Toggle", "Open Component Vault", "", "Component Vault")
@@ -862,6 +863,10 @@ function MainWidget.start(pluginHandle: Plugin)
 
 	local function syncButtonState()
 		toggleButton:SetActive(widget.Enabled)
+		if widget.Enabled and not hasStartedUpdateCheck then
+			hasStartedUpdateCheck = true
+			runUpdateCheck(false)
+		end
 	end
 
 	toggleButton.Click:Connect(function()
@@ -893,7 +898,6 @@ function MainWidget.start(pluginHandle: Plugin)
 	renderLibrary()
 	refreshSelection()
 	syncButtonState()
-	runUpdateCheck(false)
 
 	return widget
 end
