@@ -2,11 +2,11 @@
 
 Component Vault is an open-source Roblox Studio plugin for saving, organizing, and reusing UI components across experiences.
 
-> **Latest release:** [v0.1.0](https://github.com/platinumstar523-ops/roblox-component-vault/releases/tag/v0.1.0)
+> **Latest release:** [v0.1.1](https://github.com/platinumstar523-ops/roblox-component-vault/releases/tag/v0.1.1)
 
 ## Download
 
-[**Download Component Vault v0.1.0**](https://github.com/platinumstar523-ops/roblox-component-vault/releases/download/v0.1.0/ComponentVault.rbxm)
+[**Download Component Vault v0.1.1**](https://github.com/platinumstar523-ops/roblox-component-vault/releases/download/v0.1.1/ComponentVault.rbxm)
 
 ![Component Vault in Roblox Studio](docs/images/component-vault-studio.png)
 
@@ -39,9 +39,9 @@ Component Vault does not require a runtime framework. Inserted components are or
 
 Saved components remain available across Studio places on the same local Studio installation.
 
-## Install v0.1.0
+## Install v0.1.1
 
-Download `ComponentVault.rbxm` from the [v0.1.0 release](https://github.com/platinumstar523-ops/roblox-component-vault/releases/tag/v0.1.0), place it in Roblox Studio's local **Plugins Folder**, and restart Studio.
+Download `ComponentVault.rbxm` from the [v0.1.1 release](https://github.com/platinumstar523-ops/roblox-component-vault/releases/tag/v0.1.1), place it in Roblox Studio's local **Plugins Folder**, and restart Studio.
 
 The **Component Vault** toolbar button should then open the dockable plugin window.
 
