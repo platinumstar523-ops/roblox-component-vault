@@ -372,7 +372,9 @@ local function captureRootPlacement(root: GuiObject)
 
 	local position = root.Position
 	local placement = {
-		mode = "NormalizedAnchor",
+		mode = "ViewportRelative",
+		sourceWidth = absoluteSize.X,
+		sourceHeight = absoluteSize.Y,
 		x = position.X.Scale + (position.X.Offset / absoluteSize.X),
 		y = position.Y.Scale + (position.Y.Offset / absoluteSize.Y),
 	}
