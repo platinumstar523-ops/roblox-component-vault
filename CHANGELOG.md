@@ -6,7 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
-No unreleased changes yet.
+### Added
+
+- Proportional root-position metadata so newly saved or updated components can keep the same relative placement when inserted into a different viewport or parent size.
+
+### Changed
+
+- Component insertion now restores a saved root component's normalized anchor position when possible while preserving its existing `AnchorPoint`.
+- Proportional placement is skipped for layout-controlled parents and older components without placement metadata, preserving the previous insertion behavior.
 
 ## [0.1.0] - 2026-09-17
 
