@@ -371,11 +371,19 @@ local function captureRootPlacement(root: GuiObject)
 	end
 
 	local position = root.Position
-	return {
+	local placement = {
 		mode = "NormalizedAnchor",
 		x = position.X.Scale + (position.X.Offset / absoluteSize.X),
 		y = position.Y.Scale + (position.Y.Offset / absoluteSize.Y),
 	}
+
+	if root.AutomaticSize == Enum.AutomaticSize.None then
+		local size = root.Size
+		placement.width = size.X.Scale + (size.X.Offset / absoluteSize.X)
+		placement.height = size.Y.Scale + (size.Y.Offset / absoluteSize.Y)
+	end
+
+	return placement
 end
 
 local function encodeAttributes(instance: Instance, warnings: { string }): { [string]: any }
