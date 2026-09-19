@@ -349,6 +349,35 @@ local function readEncodedProperty(instance: Instance, propertyName: string): (b
 	return true, encoded
 end
 
+local function hasLayoutController(parent: Instance?): boolean
+	if not parent then
+		return false
+	end
+
+	return parent:FindFirstChildWhichIsA("UIGridStyleLayout") ~= nil
+end
+
+local function captureRootPlacement(root: GuiObject)
+	local parent = root.Parent
+	if not parent or hasLayoutController(parent) then
+		return nil
+	end
+
+	local ok, absoluteSize = pcall(function()
+		return (parent :: any).AbsoluteSize
+	end)
+	if not ok or typeof(absoluteSize) ~= "Vector2" or absoluteSize.X <= 0 or absoluteSize.Y <= 0 then
+		return nil
+	end
+
+	local position = root.Position
+	return {
+		mode = "NormalizedAnchor",
+		x = position.X.Scale + (position.X.Offset / absoluteSize.X),
+		y = position.Y.Scale + (position.Y.Offset / absoluteSize.Y),
+	}
+end
+
 local function encodeAttributes(instance: Instance, warnings: { string }): { [string]: any }
 	local encodedAttributes = {}
 
@@ -422,6 +451,7 @@ function Serializer.serialize(root: GuiObject)
 		schemaVersion = Serializer.SCHEMA_VERSION,
 		componentName = root.Name,
 		root = rootNode,
+		placement = captureRootPlacement(root),
 		warnings = warnings,
 		stats = stats,
 	}
