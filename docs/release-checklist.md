@@ -1,10 +1,11 @@
 # Release checklist
 
-Use this checklist before creating the first public Component Vault release.
+Use this checklist before creating any public Component Vault release.
 
 ## Version and repository
 
 - [ ] Confirm `VERSION` matches the intended release version and remove the `-dev` suffix.
+- [ ] Confirm `UpdateChecker.CURRENT_VERSION` matches the intended release version.
 - [ ] Confirm `CHANGELOG.md` has a dated section for the release.
 - [ ] Confirm the working tree is clean and the release commit is on `main`.
 - [ ] Review open issues for release-blocking bugs.
@@ -36,11 +37,12 @@ Run the full test in [testing.md](testing.md), including:
 
 ## Release notes and artifact
 
-- [ ] Update `docs/releases/v0.1.0.md` from draft wording to final release notes.
+- [ ] Create or update `docs/releases/v<version>.md` with final release notes.
 - [ ] List known limitations honestly.
 - [ ] Add a current screenshot or short GIF to the README if available.
-- [ ] Create tag `v0.1.0` only after the smoke test passes.
+- [ ] Create tag `v<version>` only after the smoke test passes.
 - [ ] Create the GitHub release from that exact tag.
+- [ ] Confirm the previous updater-enabled release detects the new release after GitHub marks it latest.
 - [ ] Attach the tested `ComponentVault.rbxm` artifact to the release.
 - [ ] Verify the release download installs and opens correctly in Studio.
 
