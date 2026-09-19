@@ -28,6 +28,16 @@ Resize/dock Component Vault to a narrow width and confirm:
 - Insert, Update, and Delete remain separated and clickable
 - the Transfer panel remains usable
 
+## Proportional placement regression check
+
+1. Save a root component whose `Position` includes pixel offsets in a large Studio viewport.
+2. Change Studio to a meaningfully different viewport size and insert the component into an equivalent parent.
+3. Confirm the root component stays at the same relative screen position.
+4. Repeat with a non-zero `AnchorPoint`.
+5. Confirm descendants keep their original internal positions and sizes.
+6. Repeat with a source or destination parent containing `UIListLayout` or `UIGridLayout`; layout-controlled placement should remain controlled by the layout.
+7. Insert a component saved before proportional-placement metadata existed and confirm it still inserts using its original serialized `Position`.
+
 ## Warning behavior
 
 Serializer or preview limitations should produce explicit warnings rather than crashing the plugin or silently corrupting the saved component.
