@@ -148,6 +148,35 @@ local function applyAttributes(instance: Instance, attributes: any, warnings: { 
 	end
 end
 
+local function hasLayoutController(parent: Instance): boolean
+	return parent:FindFirstChildWhichIsA("UIGridStyleLayout") ~= nil
+end
+
+local function applyRootPlacement(root: Instance, parent: Instance, serialized: any, warnings: { string })
+	if not root:IsA("GuiObject") or hasLayoutController(parent) then
+		return
+	end
+
+	local placement = serialized.placement
+	if type(placement) ~= "table" or placement.mode ~= "NormalizedAnchor" then
+		return
+	end
+
+	local x = tonumber(placement.x)
+	local y = tonumber(placement.y)
+	if x == nil or y == nil then
+		table.insert(warnings, "Could not restore proportional root position: invalid placement metadata")
+		return
+	end
+
+	local ok, setError = pcall(function()
+		(root :: GuiObject).Position = UDim2.fromScale(x, y)
+	end)
+	if not ok then
+		table.insert(warnings, string.format("Could not restore proportional root position: %s", tostring(setError)))
+	end
+end
+
 local function rebuildNode(node: any, parent: Instance?, warnings: { string }, stats: any): Instance
 	assert(type(node) == "table", "Invalid serialized node")
 	assert(type(node.className) == "string", "Serialized node is missing className")
@@ -191,6 +220,7 @@ function Rebuilder.rebuild(serialized: any, parent: Instance): (Instance, { stri
 	local stats = { instanceCount = 0 }
 	local root = rebuildNode(serialized.root, nil, warnings, stats)
 	root.Parent = parent
+	applyRootPlacement(root, parent, serialized, warnings)
 
 	return root, warnings, stats
 end
