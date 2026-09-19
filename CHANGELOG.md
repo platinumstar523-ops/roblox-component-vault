@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+No unreleased changes yet.
+
+## [0.1.1] - 2026-09-19
+
 ### Added
 
 - Responsive viewport metadata so newly saved or updated components can preserve relative placement and scale offset-based UI throughout the saved hierarchy when inserted into a different viewport or parent size.
