@@ -9,11 +9,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Added
 
 - Proportional root-position metadata so newly saved or updated components can keep the same relative placement when inserted into a different viewport or parent size.
+- In-plugin update checks against the official GitHub latest-release endpoint, with cached checks and an update-available panel containing the official release link.
 
 ### Changed
 
 - Component insertion now restores a saved root component's normalized anchor position when possible while preserving its existing `AnchorPoint`.
 - Proportional placement is skipped for layout-controlled parents and older components without placement metadata, preserving the previous insertion behavior.
+- The Component Vault window now shows its current version and update status without blocking normal plugin use when network or HTTP permission is unavailable.
 
 ## [0.1.0] - 2026-09-17
 
