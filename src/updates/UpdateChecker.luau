@@ -2,7 +2,7 @@ local HttpService = game:GetService("HttpService")
 
 local UpdateChecker = {}
 
-UpdateChecker.CURRENT_VERSION = "0.1.0"
+UpdateChecker.CURRENT_VERSION = "0.1.1"
 
 local LATEST_RELEASE_API = "https://api.github.com/repos/platinumstar523-ops/roblox-component-vault/releases/latest"
 local RELEASE_BASE_URL = "https://github.com/platinumstar523-ops/roblox-component-vault/releases/tag/"
