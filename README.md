@@ -4,18 +4,20 @@ Component Vault is an open-source Roblox Studio plugin for saving, organizing, a
 
 > **Latest release:** [v0.1.1](https://github.com/platinumstar523-ops/roblox-component-vault/releases/tag/v0.1.1)
 
-## Download
+## Install
 
-[**Download Component Vault v0.1.1**](https://github.com/platinumstar523-ops/roblox-component-vault/releases/download/v0.1.1/ComponentVault.rbxm)
+[**Install Component Vault from the Roblox Creator Store**](https://create.roblox.com/store/asset/84660547029507/UI-Component-Vault)
+
+Prefer a manual install? [Download Component Vault v0.1.1](https://github.com/platinumstar523-ops/roblox-component-vault/releases/download/v0.1.1/ComponentVault.rbxm).
 
 ![Component Vault in Roblox Studio](docs/images/component-vault-studio.png)
 
-Install it by:
+For manual installation:
 
-1. Downloading `ComponentVault.rbxm` from the link above.
-2. Opening Roblox Studio's local **Plugins Folder**.
-3. Copying `ComponentVault.rbxm` into that folder.
-4. Restarting Studio and opening **Component Vault** from the toolbar.
+1. Download `ComponentVault.rbxm` from the GitHub release.
+2. Open Roblox Studio's local **Plugins Folder**.
+3. Copy `ComponentVault.rbxm` into that folder.
+4. Restart Studio and open **Component Vault** from the toolbar.
 
 ## What works today
 
@@ -41,7 +43,9 @@ Saved components remain available across Studio places on the same local Studio 
 
 ## Install v0.1.1
 
-Download `ComponentVault.rbxm` from the [v0.1.1 release](https://github.com/platinumstar523-ops/roblox-component-vault/releases/tag/v0.1.1), place it in Roblox Studio's local **Plugins Folder**, and restart Studio.
+The easiest install is through the [Roblox Creator Store](https://create.roblox.com/store/asset/84660547029507/UI-Component-Vault).
+
+For a manual install, download `ComponentVault.rbxm` from the [v0.1.1 release](https://github.com/platinumstar523-ops/roblox-component-vault/releases/tag/v0.1.1), place it in Roblox Studio's local **Plugins Folder**, and restart Studio.
 
 The **Component Vault** toolbar button should then open the dockable plugin window.
 
@@ -87,9 +91,11 @@ roblox-component-vault/
 │   │   └── Rebuilder.luau
 │   ├── storage/
 │   │   └── LibraryStore.luau
-│   └── ui/
-│       ├── MainWidget.luau
-│       └── PreviewRenderer.luau
+│   ├── ui/
+│   │   ├── MainWidget.luau
+│   │   └── PreviewRenderer.luau
+│   └── updates/
+│       └── UpdateChecker.luau
 ├── docs/
 ├── examples/
 ├── CHANGELOG.md
